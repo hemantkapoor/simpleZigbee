@@ -19,6 +19,19 @@ namespace SimpleSerialName
 namespace SimpleZigbeeName
 {
 	class Observer;
+
+	enum COMMS_STATE_ENUM
+	{
+		ZC_WAIT_SOF = 0,
+		ZC_WAIT_LEN,
+		ZC_WAIT_CMD0,
+		ZC_WAIT_CMD1,
+		ZC_WAIT_PAYLOAD
+	};
+	const uint8_t ZC_SOF_VALUE = 0xFE;
+	const uint32_t MAX_PAYLOAD_LENGTH = 250;
+
+
 	class ZigbeeComms : public SimpleSerialName::BaseCallback, std::enable_shared_from_this<ZigbeeComms>
 	{
 	public:
@@ -36,8 +49,10 @@ namespace SimpleZigbeeName
 	private:
 		std::shared_ptr<SimpleSerialName::Comms> m_comms;
 		std::shared_ptr<Observer>  m_observer;
-
-
+		COMMS_STATE_ENUM m_commsState = ZC_WAIT_SOF;
+		uint8_t m_receivedMessage[MAX_PAYLOAD_LENGTH];
+		uint8_t m_payLoadLenghtRemaining = 0;
+		uint8_t m_currentIndex = 0;
 
 	};
 
