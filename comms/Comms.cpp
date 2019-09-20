@@ -4,9 +4,10 @@
  *  Created on: 19 Sep 2019
  *      Author: hemant
  */
+#include "Comms.h"
+
 #include <iostream>
 #include "../../simpleSerial/utility/Utility.h"
-#include "ZigbeeComms.h"
 
 using namespace SimpleZigbeeName;
 

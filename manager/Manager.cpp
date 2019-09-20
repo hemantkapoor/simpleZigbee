@@ -4,9 +4,10 @@
  *  Created on: 19 Sep 2019
  *      Author: hemant
  */
+#include "Manager.h"
+
+#include "../comms/Comms.h"
 #include "../observer/Observer.h"
-#include "../zigbeeComms/ZigbeeComms.h"
-#include "ZigbeeManager.h"
 
 using namespace SimpleZigbeeName;
 

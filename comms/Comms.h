@@ -5,8 +5,8 @@
  *      Author: hemant
  */
 
-#ifndef SRC_SIMPLEZIGBEE_ZIGBEECOMMS_ZIGBEECOMMS_H_
-#define SRC_SIMPLEZIGBEE_ZIGBEECOMMS_ZIGBEECOMMS_H_
+#ifndef SRC_SIMPLEZIGBEE_COMMS_COMMS_H_
+#define SRC_SIMPLEZIGBEE_COMMS_COMMS_H_
 #include "../../simpleSerial/comms/Comms.h"
 #include "../../simpleSerial/callback/BaseCallback.h"
 #include<memory>
@@ -43,4 +43,4 @@ namespace SimpleZigbeeName
 
 };
 
-#endif /* SRC_SIMPLEZIGBEE_ZIGBEECOMMS_ZIGBEECOMMS_H_ */
+#endif /* SRC_SIMPLEZIGBEE_COMMS_COMMS_H_ */
