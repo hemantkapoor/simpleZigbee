@@ -4,10 +4,12 @@
  *  Created on: 19 Sep 2019
  *      Author: hemant
  */
+#include <iostream>
+//#include "../../simpleSerial/utility/Utility.h"
+#include "../object/BaseObject.h"
+#include "../factory/Factory.h"
 #include "Comms.h"
 
-#include <iostream>
-#include "../../simpleSerial/utility/Utility.h"
 
 using namespace SimpleZigbeeName;
 
@@ -30,7 +32,7 @@ void ZigbeeComms::startParse()
 void ZigbeeComms::callback(std::vector<uint8_t>& data)
 {
 	//For test purpose
-	std::cout<<__PRETTY_FUNCTION__<< " : " << SimpleSerialName::Utility::hexStr(data.data(),data.size())<<std::endl;
+	//std::cout<<__PRETTY_FUNCTION__<< " : " << SimpleSerialName::Utility::hexStr(data.data(),data.size())<<std::endl;
 	//Lets go through every byte and decide what needs to be done
 	for(auto value : data)
 	{
@@ -39,8 +41,8 @@ void ZigbeeComms::callback(std::vector<uint8_t>& data)
 			case ZC_WAIT_SOF:
 			{
 				if(value != ZC_SOF_VALUE) { break; }
-				m_currentIndex = 0;
-				m_receivedMessage[m_currentIndex++] = value;
+				m_receivedMessage.clear();
+				m_receivedMessage.push_back(value);
 				m_commsState = ZC_WAIT_LEN;
 				break;
 			}
@@ -52,23 +54,25 @@ void ZigbeeComms::callback(std::vector<uint8_t>& data)
 					m_commsState = ZC_WAIT_SOF;
 					break;
 				}
-				m_receivedMessage[m_currentIndex++] = value;
+				m_receivedMessage.push_back(value);
 				m_payLoadLenghtRemaining = value;
 				m_commsState = ZC_WAIT_CMD0;
 				break;
 			}
 			case ZC_WAIT_CMD0:
 			{
-				m_receivedMessage[m_currentIndex++] = value;
+				m_receivedMessage.push_back(value);
 				m_commsState = ZC_WAIT_CMD1;
 				break;
 			}
 			case ZC_WAIT_CMD1:
 			{
-				m_receivedMessage[m_currentIndex++] = value;
+				m_receivedMessage.push_back(value);
 				if(m_payLoadLenghtRemaining == 0)
 				{
 					//We handle the command here then set state to SOF
+					Factory myFactory;
+					auto messageObject = myFactory.create(m_receivedMessage);
 					m_commsState = ZC_WAIT_SOF;
 					break;
 				}
@@ -77,10 +81,13 @@ void ZigbeeComms::callback(std::vector<uint8_t>& data)
 			}
 			case ZC_WAIT_PAYLOAD:
 			{
-				m_receivedMessage[m_currentIndex++] = value;
+				m_receivedMessage.push_back(value);
+				--m_payLoadLenghtRemaining;
 				if(m_payLoadLenghtRemaining == 0)
 				{
 					//We handle the command here then set state to SOF
+					Factory myFactory;
+					auto messageObject = myFactory.create(m_receivedMessage);
 					m_commsState = ZC_WAIT_SOF;
 					break;
 				}

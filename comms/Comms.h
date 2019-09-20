@@ -9,6 +9,8 @@
 #define SRC_SIMPLEZIGBEE_COMMS_COMMS_H_
 #include "../../simpleSerial/comms/Comms.h"
 #include "../../simpleSerial/callback/BaseCallback.h"
+#include "stdint.h"
+#include <vector>
 #include<memory>
 
 namespace SimpleSerialName
@@ -50,10 +52,8 @@ namespace SimpleZigbeeName
 		std::shared_ptr<SimpleSerialName::Comms> m_comms;
 		std::shared_ptr<Observer>  m_observer;
 		COMMS_STATE_ENUM m_commsState = ZC_WAIT_SOF;
-		uint8_t m_receivedMessage[MAX_PAYLOAD_LENGTH];
+		std::vector<uint8_t> m_receivedMessage;
 		uint8_t m_payLoadLenghtRemaining = 0;
-		uint8_t m_currentIndex = 0;
-
 	};
 
 };
