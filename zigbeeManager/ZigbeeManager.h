@@ -20,6 +20,7 @@ namespace SimpleZigbeeName
 {
 
 	class ZigbeeComms;
+	class Observer;
 
 	class ZigbeeManager {
 	public:
@@ -30,7 +31,8 @@ namespace SimpleZigbeeName
 		bool initialise();
 
 	private:
-		std::unique_ptr<ZigbeeComms> m_zigbeeComms;
+		std::shared_ptr<ZigbeeComms> m_zigbeeComms;
+		std::shared_ptr<Observer> m_observer;
 	};
 
 };
