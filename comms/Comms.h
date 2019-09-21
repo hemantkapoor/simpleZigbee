@@ -41,8 +41,6 @@ namespace SimpleZigbeeName
 		ZigbeeComms(std::shared_ptr<SimpleSerialName::Comms> comms, std::shared_ptr<Observer> observer);
 		virtual ~ZigbeeComms();
 
-		void startParse();
-
 		void callback(std::vector<uint8_t>& data) override;
 	    std::shared_ptr<ZigbeeComms> getptr() {
 	        return shared_from_this();

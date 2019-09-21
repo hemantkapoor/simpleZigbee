@@ -5,7 +5,7 @@
  *      Author: hemant
  */
 #include <iostream>
-//#include "../../simpleSerial/utility/Utility.h"
+#include "../observer/Observer.h"
 #include "../object/BaseObject.h"
 #include "../factory/Factory.h"
 #include "Comms.h"
@@ -13,7 +13,8 @@
 
 using namespace SimpleZigbeeName;
 
-ZigbeeComms::ZigbeeComms(std::shared_ptr<SimpleSerialName::Comms> comms, std::shared_ptr<Observer> observer):m_comms(comms),
+ZigbeeComms::ZigbeeComms(std::shared_ptr<SimpleSerialName::Comms> comms, std::shared_ptr<Observer> observer):
+		m_comms(comms),
 		m_observer(observer)
 {
 }
@@ -22,12 +23,9 @@ ZigbeeComms::ZigbeeComms(std::shared_ptr<SimpleSerialName::Comms> comms, std::sh
 ZigbeeComms::~ZigbeeComms()
 {
 	// TODO Auto-generated destructor stub
+	std::cout<<__PRETTY_FUNCTION__<< " : Destructor called \r\n";
 }
 
-void ZigbeeComms::startParse()
-{
-	m_comms->addCallback(std::shared_ptr<ZigbeeComms>(this));
-}
 
 void ZigbeeComms::callback(std::vector<uint8_t>& data)
 {
@@ -73,6 +71,7 @@ void ZigbeeComms::callback(std::vector<uint8_t>& data)
 					//We handle the command here then set state to SOF
 					Factory myFactory;
 					auto messageObject = myFactory.create(m_receivedMessage);
+					m_observer->handleReceivedMessage(std::move(messageObject));
 					m_commsState = ZC_WAIT_SOF;
 					break;
 				}
@@ -88,6 +87,7 @@ void ZigbeeComms::callback(std::vector<uint8_t>& data)
 					//We handle the command here then set state to SOF
 					Factory myFactory;
 					auto messageObject = myFactory.create(m_receivedMessage);
+					m_observer->handleReceivedMessage(std::move(messageObject));
 					m_commsState = ZC_WAIT_SOF;
 					break;
 				}

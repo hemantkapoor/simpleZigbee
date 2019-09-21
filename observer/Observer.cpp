@@ -15,15 +15,20 @@ Observer::Observer(std::shared_ptr<SimpleSerialName::Comms> comms):m_comms(comms
 {
 }
 
-void Observer::handleReceivedMessage(std::unique_ptr<MessageDataType> message)
+void Observer::handleReceivedMessage(std::unique_ptr<BaseObject> messageObject)
 {
+	if(!messageObject)
+	{
+		std::cout<<__PRETTY_FUNCTION__<< " : No Object present"<<std::endl;
+		return;
+	}
+	std::cout<<__PRETTY_FUNCTION__<< " : Object present. Need to do something"<<std::endl;
 	//For now just print it
-	std::cout<<__PRETTY_FUNCTION__<< " : " << SimpleSerialName::Utility::hexStr(message->data(),message->size());
+	//std::cout<<__PRETTY_FUNCTION__<< " : " << SimpleSerialName::Utility::hexStr(message->data(),message->size());
 }
 
 Observer::~Observer()
 {
-	// TODO Auto-generated destructor stub
-
+	std::cout<<__PRETTY_FUNCTION__<< " : Destructor called \r\n";
 }
 

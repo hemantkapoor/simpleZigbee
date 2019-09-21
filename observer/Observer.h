@@ -15,18 +15,23 @@ namespace SimpleSerialName
 	class Comms;
 };
 
-using MessageDataType = std::vector<uint8_t>;
-
 namespace SimpleZigbeeName
 {
+
+class BaseObject;
 
 class Observer
 {
 public:
 	Observer() = delete;
+
+	Observer(const Observer&) = delete;
+	Observer& operator=(const Observer&) = delete;
+
+
 	Observer(std::shared_ptr<SimpleSerialName::Comms> comms);
 	virtual ~Observer();
-	void handleReceivedMessage(std::unique_ptr<MessageDataType> message);
+	void handleReceivedMessage(std::unique_ptr<BaseObject>);
 private:
 	std::shared_ptr<SimpleSerialName::Comms> m_comms;
 };
