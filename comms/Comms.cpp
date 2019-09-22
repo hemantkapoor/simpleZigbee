@@ -53,7 +53,7 @@ void ZigbeeComms::callback(std::vector<uint8_t>& data)
 					break;
 				}
 				m_receivedMessage.push_back(value);
-				m_payLoadLenghtRemaining = value;
+				m_payLoadLenghtRemaining = value; //1 byte of checksum
 				m_commsState = ZC_WAIT_CMD0;
 				break;
 			}

@@ -25,6 +25,13 @@ namespace SimpleZigbeeName
 
 	using MessageDataType = std::vector<uint8_t>;
 	const MessageDataType GET_VERSION = {0xFE, 0x00, 0x21, 0x02, 0x23};
+	const MessageDataType READ_NVM_USER_APP = {0xFE, 0x03, 0x21, 0x08, 0x00, 0x0F, 0x00, 0x25 };
+
+
+	//Response Message Commands
+	const uint16_t GET_VERSION_RESPONSE_CMD = 0x6102;
+	const uint16_t READ_NVM_RESPONSE_CMD = 0x6108;
+
 
 	class ZigbeeManager {
 	public:

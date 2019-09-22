@@ -54,6 +54,9 @@ const uint8_t CMD0_INDEX = 2;
 const uint8_t CMD1_INDEX = 3;
 const uint8_t DATA_INDEX = 4;
 
+const uint8_t STATUS_SUCCESS = 0;
+const uint8_t STATUS_FAIL	 = 1;
+
 class BaseObject
 {
 public:

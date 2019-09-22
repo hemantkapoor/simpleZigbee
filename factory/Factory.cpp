@@ -7,6 +7,7 @@
 #include <iostream>
 #include "../../simpleSerial/utility/Utility.h"
 #include "../object/SysVersionResponse.h"
+#include "../object/SysOsalNvReadResponse.h"
 #include "Factory.h"
 
 using namespace SimpleZigbeeName;
@@ -61,13 +62,21 @@ std::unique_ptr<BaseObject> Factory::createSysinterfaceResponse(const SysCommand
 			}
 			break;
 		}
+		case SYS_OSAL_NV_READ:
+		{
+			auto retval1 = std::make_unique<SysOsalNvReadResponse>();
+			if(retval1->create(data) == true)
+			{
+				retVal = std::move(retval1);
+			}
+			break;
+		}
 		case SYS_PING:
 		case SYS_SET_EXTADDR:
 		case SYS_GET_EXTADDR:
 		case SYS_RAM_READ:
 		case SYS_RAM_WRITE:
 		case SYS_OSAL_NV_ITEM_INIT:
-		case SYS_OSAL_NV_READ:
 		case SYS_OSAL_NV_WRITE:
 		case SYS_OSAL_START_TIMER:
 		case SYS_OSAL_STOP_TIMER:

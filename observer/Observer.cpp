@@ -36,6 +36,7 @@ void Observer::handleReceivedMessage(std::unique_ptr<BaseObject> messageObject)
 	}
 	std::lock_guard<std::mutex> guard(m_syncResponseMapMutex);
 	m_syncResponseMap[command] = std::move(messageObject);
+	std::cout<<__PRETTY_FUNCTION__<< " : Added Command Id 0x"<< std::hex << int(command) << std::endl;
 }
 
 void Observer::requestSyncResponse(uint16_t command)

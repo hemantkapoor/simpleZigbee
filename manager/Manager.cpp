@@ -22,19 +22,37 @@ ZigbeeManager::ZigbeeManager(std::shared_ptr<SimpleSerialName::Comms> comms):m_c
 bool ZigbeeManager::initialise()
 {
 	//First command is get the version
-	uint16_t respCommand = 0x6102;
-	m_observer->requestSyncResponse(respCommand);
+	std::cout<<__PRETTY_FUNCTION__<< " : Requesting Firmware Version\r\n";
+	m_observer->requestSyncResponse(GET_VERSION_RESPONSE_CMD);
 	m_comms->transmitData(GET_VERSION);
 	//Lets sleep for a seconds
 	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-	auto respObject = m_observer->getSyncResponse(respCommand);
+	auto respObject = m_observer->getSyncResponse(GET_VERSION_RESPONSE_CMD);
 	if(!respObject)
 	{
 		//Remove and return
-		m_observer->removeRequestSyncResponse(respCommand);
+		m_observer->removeRequestSyncResponse(GET_VERSION_RESPONSE_CMD);
+		std::cout<<__PRETTY_FUNCTION__<< " : No Response for Firmware Version\r\n";
 		return false;
 	}
 	respObject->print();
+
+	//Next we Read NVM and verify we get correct thingies
+	std::cout<<__PRETTY_FUNCTION__<< " : Requesting NVM User Data\r\n";
+	m_observer->requestSyncResponse(READ_NVM_RESPONSE_CMD);
+	m_comms->transmitData(READ_NVM_USER_APP);
+	//Lets sleep for a seconds
+	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+	respObject = m_observer->getSyncResponse(READ_NVM_RESPONSE_CMD);
+	if(!respObject)
+	{
+		//Remove and return
+		std::cout<<__PRETTY_FUNCTION__<< " : No response for Requesting NVM User Data\r\n";
+		m_observer->removeRequestSyncResponse(READ_NVM_RESPONSE_CMD);
+		return false;
+	}
+	respObject->print();
+
 
 	return true;
 }
