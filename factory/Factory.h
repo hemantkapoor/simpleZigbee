@@ -11,17 +11,44 @@
 #include "stdint.h"
 #include <vector>
 #include<memory>
+#include "../object/BaseObject.h"
 
 namespace SimpleZigbeeName
 {
 
 class BaseObject;
 
+
+const uint8_t TYPE_MASK = 0xE0;
+const uint8_t SYB_SYSTEM_MASK = 0x1F;
+
+const uint8_t TYPE_SRSP		= 0x60;
+
+enum SubSystemType : uint8_t
+{
+	SUBSYSTEM_RESERVED = 0x00,
+	SUBSYSTEM_SYS_INTERFACE,	//0x01
+	SUBSYSTEM_MAC_INTERFACE,	//0x02
+	SUBSYSTEM_NWK_INTERFACE,	//0x03
+	SUBSYSTEM_AF_INTERFACE,		//0x04
+	SUBSYSTEM_ZDO_INTERFACE,	//0x05
+	SUBSYSTEM_SAPI_INTERFACE,	//0x06
+	SUBSYSTEM_UTIL_INTERFACE,	//0x07
+	SUBSYSTEM_DEBUG_INTERFACE,	//0x08
+	SUBSYSTEM_APP_INTERFACE,	//0x09
+	SUBSYSTEM_APP_CONFIG = 0x0F,
+	SUBSYSTEM_GREENPOWER = 0x15,
+};
+
+
 class Factory {
 public:
 	Factory() = default;
 	virtual ~Factory() = default;
 	std::unique_ptr<BaseObject> create(const std::vector<uint8_t>& data);
+
+private:
+	std::unique_ptr<BaseObject> createSysinterfaceResponse(const SysCommandsEnum command, const std::vector<uint8_t>& data);
 };
 
 }; /* namespace SimpleZigbeeName */

@@ -7,6 +7,7 @@
 #include <iostream>
 #include "../comms/Comms.h"
 #include "../observer/Observer.h"
+#include "../object/BaseObject.h"
 #include "Manager.h"
 
 using namespace SimpleZigbeeName;
@@ -21,7 +22,20 @@ ZigbeeManager::ZigbeeManager(std::shared_ptr<SimpleSerialName::Comms> comms):m_c
 bool ZigbeeManager::initialise()
 {
 	//First command is get the version
+	uint16_t respCommand = 0x6102;
+	m_observer->requestSyncResponse(respCommand);
 	m_comms->transmitData(GET_VERSION);
+	//Lets sleep for a seconds
+	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+	auto respObject = m_observer->getSyncResponse(respCommand);
+	if(!respObject)
+	{
+		//Remove and return
+		m_observer->removeRequestSyncResponse(respCommand);
+		return false;
+	}
+	respObject->print();
+
 	return true;
 }
 

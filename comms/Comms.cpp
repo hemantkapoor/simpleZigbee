@@ -70,8 +70,11 @@ void ZigbeeComms::callback(std::vector<uint8_t>& data)
 				{
 					//We handle the command here then set state to SOF
 					Factory myFactory;
-					auto messageObject = myFactory.create(m_receivedMessage);
-					m_observer->handleReceivedMessage(std::move(messageObject));
+					auto messageObject = std::move(myFactory.create(m_receivedMessage));
+					if(messageObject)
+					{
+						m_observer->handleReceivedMessage(std::move(messageObject));
+					}
 					m_commsState = ZC_WAIT_SOF;
 					break;
 				}
