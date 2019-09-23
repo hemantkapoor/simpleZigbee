@@ -47,6 +47,7 @@ public:
 	virtual ~MtUtilGetDeviceInfoResponse() = default;
 	virtual bool create(const std::vector<uint8_t>&) final;
 	virtual void print() final;
+	virtual uint16_t getCommand() final { return m_command; }
 	bool valid() const {return m_dataPopulated;}
 	DeviceInfoResult getResult();
 
@@ -54,6 +55,7 @@ private:
 	DeviceInfoStruct m_deviceInfo;
 	std::vector<uint16_t> m_assocDevicesList;
 	bool m_dataPopulated = false;
+	uint16_t m_command = 0x6700;
 };
 
 };

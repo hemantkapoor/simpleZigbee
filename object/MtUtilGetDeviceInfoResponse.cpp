@@ -115,6 +115,7 @@ void MtUtilGetDeviceInfoResponse::print()
 			break;
 		}
 	}
+	std::cout<<__PRETTY_FUNCTION__<< "Device Type : " << std::hex << (int)m_deviceInfo.DeviceType << std::endl;
 	std::cout<<__PRETTY_FUNCTION__<< "Device State : " << devState << std::endl;
 }
 

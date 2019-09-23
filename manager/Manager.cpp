@@ -90,6 +90,13 @@ bool ZigbeeManager::initialise()
 		std::cout<<__PRETTY_FUNCTION__<< " : Cannot Read ZCD_NV_PRECFGKEYS_ENABLE... Bailing\r\n";
 		return false;
 	}
+
+	//HK Not sure what this will do
+	m_comms->transmitData(GET_PRE_CFG_KEY);
+	//Lets sleep for a seconds
+	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+	auto retValue = getDeviceInfo();
 	return true;
 }
 
@@ -137,7 +144,7 @@ std::vector<uint8_t> ZigbeeManager::readOsalNvm(uint16_t id, uint8_t offset)
 
 DevReturnType ZigbeeManager::getDeviceInfo()
 {
-	std::cout<<__PRETTY_FUNCTION__<< " : Requesting Firmware Version\r\n";
+	std::cout<<__PRETTY_FUNCTION__<< " : Requesting Device Information\r\n";
 	m_observer->requestSyncResponse(GET_DEVICE_INFO_RESPONSE_CMD);
 	m_comms->transmitData(GET_DEVICE_INFO);
 	//Lets sleep for a seconds

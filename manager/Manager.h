@@ -37,6 +37,8 @@ namespace SimpleZigbeeName
 	const MessageDataType GET_DEVICE_INFO = {0xFE, 0x00, 0x27, 0x00, 0x27};
 	const uint16_t GET_DEVICE_INFO_RESPONSE_CMD = 0x6700;
 
+	const MessageDataType GET_PRE_CFG_KEY = {0xFE, 0x01, 0x26, 0x04, 0x62, 0x41};
+
 
 
 

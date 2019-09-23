@@ -8,6 +8,7 @@
 #include "../../simpleSerial/utility/Utility.h"
 #include "../object/SysVersionResponse.h"
 #include "../object/SysOsalNvReadResponse.h"
+#include "../object/MtUtilGetDeviceInfoResponse.h"
 #include "Factory.h"
 
 using namespace SimpleZigbeeName;
@@ -17,7 +18,6 @@ std::unique_ptr<BaseObject> Factory::create(const std::vector<uint8_t>& data)
 {
 	//Lets see what type of message is there
 	uint8_t command0 = data[CMD0_INDEX];
-	SysCommandsEnum command1 = (SysCommandsEnum)data[CMD1_INDEX];
 	uint8_t type = command0 & TYPE_MASK;
 	uint8_t subSystem = command0 & SYB_SYSTEM_MASK;
 	auto retVal = std::unique_ptr<BaseObject>{};
@@ -29,7 +29,16 @@ std::unique_ptr<BaseObject> Factory::create(const std::vector<uint8_t>& data)
 			{
 				case SUBSYSTEM_SYS_INTERFACE:
 				{
+					SysCommandsEnum command1 = (SysCommandsEnum)data[CMD1_INDEX];
 					retVal = std::move(createSysinterfaceResponse(command1,data));
+					break;
+				}
+				case SUBSYSTEM_UTIL_INTERFACE:
+				{
+
+					//MtUtilCommandsEnum command1 = (MtUtilCommandsEnum)data[CMD1_INDEX];
+					//retVal = std::move(createMtUtilResponse(command1,data));
+					break;
 				}
 			}
 			break;
@@ -108,3 +117,48 @@ std::unique_ptr<BaseObject> Factory::createSysinterfaceResponse(const SysCommand
 	}
 	return retVal;
 }
+
+
+std::unique_ptr<BaseObject> Factory::createMtUtilResponse(const MtUtilCommandsEnum command, const std::vector<uint8_t>& data)
+{
+	auto retVal = std::unique_ptr<BaseObject>{};
+	switch(command)
+	{
+		case MT_UTIL_GET_DEVICE_INFO:
+		{
+			auto retval1 = std::make_unique<MtUtilGetDeviceInfoResponse>();
+			if(retval1->create(data) == true)
+			{
+				retVal = std::move(retval1);
+			}
+			break;
+		}
+		case MT_UTIL_GET_NV_INFO:
+		case MT_UTIL_SET_PANID:
+		case MT_UTIL_SET_CHANNELS:
+		case MT_UTIL_SET_SECLEVEL:
+		case MT_UTIL_SET_PRECFGKEY:
+		case MT_UTIL_CALLBACK_SUB_CMD:
+		case MT_UTIL_KEY_EVENT:
+		case MT_UTIL_TIME_ALIVE:
+		case MT_UTIL_LED_CONTROL:
+		case MT_UTIL_LOOPBACK:
+		case MT_UTIL_DATA_REQ:
+		case MT_UTIL_SRC_MATCH_ENABLE:
+		case MT_UTIL_SRC_MATCH_ADD_ENTRY:
+		case MT_UTIL_SRC_MATCH_DEL_ENTRY:
+		case MT_UTIL_SRC_MATCH_CHECK_SRC_ADDR:
+		case MT_UTIL_SRC_MATCH_ACK_ALL_PENDING:
+		case MT_UTIL_SRC_MATCH_CHECK_ALL_PENDI:
+		case MT_UTIL_ADDRMGR_EXT_ADDR_LOOKUP:
+		case MT_UTIL_ADDRMGR_NWK_ADDR_LOOKUP:
+		case MT_UTIL_APSME_LINK_KEY_DATA_GET:
+		case MT_UTIL_APSME_LINK_KEY_NV_ID_GET:
+		case MT_UTIL_APSME_REQUEST_KEY_CMD:
+		{
+			break;
+		}
+	}
+	return retVal;
+}
+
