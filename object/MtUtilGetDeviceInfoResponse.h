@@ -25,7 +25,8 @@ enum DeviceStateEnum : uint8_t
 	DEVICE_JOINED, //_AUTHENTICATED_AND_IS_A_ROUTER,
 	STARTING_AS_ZIGBEE_COORDINATOR,
 	STARTED_AS_ZIGBEE_COORDINATOR,
-	DEVICE_HAS_LOST_INFORMATION_ABOUT_ITS_PARENT
+	DEVICE_HAS_LOST_INFORMATION_ABOUT_ITS_PARENT,
+	Device_ERROR
 };
 
 struct __attribute__ ((packed)) DeviceInfoStruct
@@ -43,7 +44,7 @@ using DeviceInfoResult = std::pair<DeviceInfoStruct, std::vector<uint16_t>>;
 class MtUtilGetDeviceInfoResponse: public SimpleZigbeeName::BaseObject
 {
 public:
-	MtUtilGetDeviceInfoResponse() = default;
+	MtUtilGetDeviceInfoResponse();
 	virtual ~MtUtilGetDeviceInfoResponse() = default;
 	virtual bool create(const std::vector<uint8_t>&) final;
 	virtual void print() final;
@@ -55,7 +56,7 @@ private:
 	DeviceInfoStruct m_deviceInfo;
 	std::vector<uint16_t> m_assocDevicesList;
 	bool m_dataPopulated = false;
-	uint16_t m_command = 0x6700;
+	uint16_t m_command;
 };
 
 };

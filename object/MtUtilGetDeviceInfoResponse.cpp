@@ -9,10 +9,16 @@
 #include <cstring>
 #include <algorithm>
 #include "../../simpleSerial/utility/Utility.h"
+#include "../utility/Utility.h"
 #include "MtUtilGetDeviceInfoResponse.h"
 
 namespace SimpleZigbeeName
 {
+
+MtUtilGetDeviceInfoResponse::MtUtilGetDeviceInfoResponse()
+{
+	m_command = Utility::getSyncyResponseCommand(SYNC_MT_UTIL_COMMAND0,MT_UTIL_GET_DEVICE_INFO);
+}
 
 bool MtUtilGetDeviceInfoResponse::create(const std::vector<uint8_t>& data)
 {
@@ -112,6 +118,11 @@ void MtUtilGetDeviceInfoResponse::print()
 		case DEVICE_HAS_LOST_INFORMATION_ABOUT_ITS_PARENT:
 		{
 			devState = "DEVICE_HAS_LOST_INFORMATION_ABOUT_ITS_PARENT";
+			break;
+		}
+		case Device_ERROR:
+		{
+			devState = "CUSTOM DEVICE ERROR";
 			break;
 		}
 	}

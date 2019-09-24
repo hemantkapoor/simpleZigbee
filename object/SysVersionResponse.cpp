@@ -6,13 +6,14 @@
  */
 #include <iostream>
 #include <cstring>
-
+#include "../utility/Utility.h"
 #include "SysVersionResponse.h"
 
 namespace SimpleZigbeeName {
 
 SysVersionResponse::SysVersionResponse()
 {
+	m_command = Utility::getSyncyResponseCommand(SYNC_SYS_COMMAND0,SYS_VERSION);
 }
 
 

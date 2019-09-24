@@ -21,28 +21,9 @@ namespace SimpleSerialName
 namespace SimpleZigbeeName
 
 {
-
 	class ZigbeeComms;
 	class Observer;
 	using DevReturnType = std::pair<bool,DeviceInfoResult>;
-
-	using MessageDataType = std::vector<uint8_t>;
-
-	const uint16_t READ_NVM_RESPONSE_CMD = 0x6108;
-
-	//Command and Response Message
-	const MessageDataType GET_VERSION = {0xFE, 0x00, 0x21, 0x02, 0x23};
-	const uint16_t GET_VERSION_RESPONSE_CMD = 0x6102;
-
-	const MessageDataType GET_DEVICE_INFO = {0xFE, 0x00, 0x27, 0x00, 0x27};
-	const uint16_t GET_DEVICE_INFO_RESPONSE_CMD = 0x6700;
-
-	const MessageDataType GET_PRE_CFG_KEY = {0xFE, 0x01, 0x26, 0x04, 0x62, 0x41};
-
-
-
-
-
 
 	//Important OSAL NVM Address
 	struct OsalNvmAddress
@@ -74,8 +55,9 @@ namespace SimpleZigbeeName
 		//Helper functions
 		//Empty Vector means something when wrong
 		std::vector<uint8_t> readOsalNvm(uint16_t id, uint8_t offset);
-
+		DeviceStateEnum getDeviceState();
 		DevReturnType getDeviceInfo();
+
 	};
 };
 

@@ -5,11 +5,13 @@
  *      Author: hemant
  */
 #include <iostream>
+#include <vector>
 #include "../../simpleSerial/utility/Utility.h"
 #include "../comms/Comms.h"
 #include "../observer/Observer.h"
 #include "../object/BaseObject.h"
 #include "../object/SysOsalNvReadResponse.h"
+#include "../utility/Utility.h"
 #include "Manager.h"
 
 using namespace SimpleZigbeeName;
@@ -25,15 +27,17 @@ bool ZigbeeManager::initialise()
 {
 	//First command is get the version
 	std::cout<<__PRETTY_FUNCTION__<< " : Requesting Firmware Version\r\n";
-	m_observer->requestSyncResponse(GET_VERSION_RESPONSE_CMD);
-	m_comms->transmitData(GET_VERSION);
+	auto getVersion =  Utility::constructMessage(SYNC_SYS_COMMAND0, SYS_VERSION);
+	auto responseCommandExpected = Utility::getSyncyResponseCommand(SYNC_SYS_COMMAND0, SYS_VERSION);
+	m_observer->requestSyncResponse(responseCommandExpected);
+	m_comms->transmitData(getVersion);
 	//Lets sleep for a seconds
 	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-	auto respObject = m_observer->getSyncResponse(GET_VERSION_RESPONSE_CMD);
+	auto respObject = m_observer->getSyncResponse(responseCommandExpected);
 	if(!respObject)
 	{
 		//Remove and return
-		m_observer->removeRequestSyncResponse(GET_VERSION_RESPONSE_CMD);
+		m_observer->removeRequestSyncResponse(responseCommandExpected);
 		std::cout<<__PRETTY_FUNCTION__<< " : No Response for Firmware Version\r\n";
 		return false;
 	}
@@ -56,7 +60,6 @@ bool ZigbeeManager::initialise()
 
 
 	std::cout<<__PRETTY_FUNCTION__<< " : Reading PAN ID\r\n";
-
 	nvmVal = readOsalNvm(ZCD_NV_PANID_ADDRESS.id,ZCD_NV_PANID_ADDRESS.offset);
 	if(nvmVal.empty())
 	{
@@ -92,40 +95,62 @@ bool ZigbeeManager::initialise()
 	}
 
 	//HK Not sure what this will do
-	m_comms->transmitData(GET_PRE_CFG_KEY);
+	auto getPreCnfgKey =  Utility::constructMessage(SYNC_MT_SAPI_COMMAND0, MT_SAPI_ZB_READ_CONFIGURATION, MessageDataType{0x62});
+	m_comms->transmitData(getPreCnfgKey);
 	//Lets sleep for a seconds
 	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-	auto retValue = getDeviceInfo();
+	std::cout<<__PRETTY_FUNCTION__<< " : Getting Device Ready\r\n";
+
+	while(true)
+	{
+		auto deviceState = getDeviceState();
+		if(deviceState == Device_ERROR)
+		{
+			std::cout<<__PRETTY_FUNCTION__<< " : Cannot get Device State... Bailing\r\n";
+			return false;
+		}
+		if(deviceState == INIT_NOT_STARTED_AUTOMATICALLY)
+		{
+			//We start the device
+			std::cout<<__PRETTY_FUNCTION__<< " : Starting Device\r\n";
+			auto transmitMessage =  Utility::constructMessage(SYNC_MT_ZDO_COMMAND0, ZDO_STARTUP_FROM_APP, MessageDataType{0x00, 0x03});
+			auto responseCommandExpected = Utility::getSyncyResponseCommand(SYNC_MT_ZDO_COMMAND0, ZDO_STARTUP_FROM_APP);
+			m_observer->requestSyncResponse(responseCommandExpected);
+			m_comms->transmitData(transmitMessage);
+			//Lets sleep for a seconds
+			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+			auto respObject = m_observer->getSyncResponse(responseCommandExpected);
+			if(!respObject)
+			{
+				//Remove and return
+				m_observer->removeRequestSyncResponse(responseCommandExpected);
+				std::cout<<__PRETTY_FUNCTION__<< " : No Response for Start Device Command\r\n";
+				return false;
+			}
+			respObject->print();
+		}
+	}
+
 	return true;
 }
 
 std::vector<uint8_t> ZigbeeManager::readOsalNvm(uint16_t id, uint8_t offset)
 {
-	std::cout<<__PRETTY_FUNCTION__<< " : Id 0x" <<std::hex<<int(id)<< ", Offset 0x" <<std::hex<<int(offset)<<std::endl;
 	std::vector<uint8_t> retData{};
-	std::vector<uint8_t> dataTosend{ (uint8_t)0x03, (uint8_t)0x21, (uint8_t)0x08, (uint8_t)(id & 0xFF), (uint8_t)((id & 0xFF00) >> 8),offset};
-	//The checksum
-	uint8_t fcs(0);
-	for (auto data : dataTosend)
-	{
-		fcs = fcs ^ data;
-	}
-	dataTosend.push_back(fcs);
+	auto responseCommandExpected = Utility::getSyncyResponseCommand(SYNC_SYS_COMMAND0,SYS_OSAL_NV_READ);
+	m_observer->requestSyncResponse(responseCommandExpected);
 
-	//Now we add SOF
-	auto startIt = dataTosend.begin();
-	dataTosend.insert(startIt,0xFE);
-	m_observer->requestSyncResponse(READ_NVM_RESPONSE_CMD);
+	auto dataTosend =  Utility::constructMessage(SYNC_SYS_COMMAND0,SYS_OSAL_NV_READ,MessageDataType{(uint8_t)(id & 0xFF), (uint8_t)((id & 0xFF00) >> 8),offset});
 	m_comms->transmitData(dataTosend);
 	//Lets sleep for a seconds
 	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-	auto respObject = m_observer->getSyncResponse(READ_NVM_RESPONSE_CMD);
+	auto respObject = m_observer->getSyncResponse(responseCommandExpected);
 	if(!respObject)
 	{
 		//Remove and return
 		std::cout<<__PRETTY_FUNCTION__<< " : No response for Requesting NVM User Data\r\n";
-		m_observer->removeRequestSyncResponse(READ_NVM_RESPONSE_CMD);
+		m_observer->removeRequestSyncResponse(responseCommandExpected);
 		return retData;
 	}
 	respObject->print();
@@ -142,21 +167,43 @@ std::vector<uint8_t> ZigbeeManager::readOsalNvm(uint16_t id, uint8_t offset)
 	return retData;
 }
 
+DeviceStateEnum ZigbeeManager::getDeviceState()
+{
+	DeviceStateEnum retState(Device_ERROR);
+
+	auto retValue = getDeviceInfo();
+	if(std::get<0>(retValue) == false)
+	{
+		std::cout<<__PRETTY_FUNCTION__<< " : Cannot get Device Info... Bailing\r\n";
+		return retState;
+	}
+	auto deviceInfoPair = std::get<1>(retValue);
+	//Lets get the deviceInfo
+	auto deviceInfo = std::get<0>(deviceInfoPair);
+	//Now check system state
+	retState = deviceInfo.DeviceState;
+
+	return retState;
+}
+
 DevReturnType ZigbeeManager::getDeviceInfo()
 {
 	std::cout<<__PRETTY_FUNCTION__<< " : Requesting Device Information\r\n";
-	m_observer->requestSyncResponse(GET_DEVICE_INFO_RESPONSE_CMD);
-	m_comms->transmitData(GET_DEVICE_INFO);
+	auto responseCommandExpected = Utility::getSyncyResponseCommand(SYNC_MT_UTIL_COMMAND0,MT_UTIL_GET_DEVICE_INFO);
+	m_observer->requestSyncResponse(responseCommandExpected);
+
+	auto devInfoRequestMessage =  Utility::constructMessage(SYNC_MT_UTIL_COMMAND0,MT_UTIL_GET_DEVICE_INFO);
+	m_comms->transmitData(devInfoRequestMessage);
 	//Lets sleep for a seconds
 	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-	auto respObject = m_observer->getSyncResponse(GET_DEVICE_INFO_RESPONSE_CMD);
+	auto respObject = m_observer->getSyncResponse(responseCommandExpected);
 	DeviceInfoStruct t1;
 	std::vector<uint16_t> t2;
 	auto retVal = std::make_pair(t1,t2);
 	if(!respObject)
 	{
 		//Remove and return
-		m_observer->removeRequestSyncResponse(GET_DEVICE_INFO_RESPONSE_CMD);
+		m_observer->removeRequestSyncResponse(responseCommandExpected);
 		std::cout<<__PRETTY_FUNCTION__<< " : No Response for Firmware Version\r\n";
 		return std::make_pair(false,retVal);
 	}

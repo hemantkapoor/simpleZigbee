@@ -27,7 +27,7 @@ public:
 	std::vector<uint8_t> data() const {return m_valueVector; }
 
 private:
-	uint16_t m_command = 0x6108;
+	uint16_t m_command;
 	bool m_dataPopulated = false;
 	std::vector<uint8_t> m_valueVector;
 };

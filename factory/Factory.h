@@ -50,6 +50,7 @@ public:
 private:
 	std::unique_ptr<BaseObject> createSysinterfaceResponse(const SysCommandsEnum command, const std::vector<uint8_t>& data);
 	std::unique_ptr<BaseObject> createMtUtilResponse(const MtUtilCommandsEnum command, const std::vector<uint8_t>& data);
+	std::unique_ptr<BaseObject> createMtZdoResponse(const MtZdoCommandsEnum command, const std::vector<uint8_t>& data);
 };
 
 }; /* namespace SimpleZigbeeName */

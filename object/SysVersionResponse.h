@@ -32,7 +32,7 @@ public:
 private:
 	VersionAttributeStruct m_version;
 	bool m_dataPopulated = false;
-	uint16_t m_command = 0x6102;
+	uint16_t m_command;
 };
 
 } /* namespace SimpleZigbeeName */

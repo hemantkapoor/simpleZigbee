@@ -8,12 +8,14 @@
 #include <iostream>
 #include <cstring>
 #include <algorithm>
+#include "../utility/Utility.h"
 #include "SysOsalNvReadResponse.h"
 
 namespace SimpleZigbeeName {
 
 SysOsalNvReadResponse::SysOsalNvReadResponse()
 {
+	m_command = Utility::getSyncyResponseCommand(SYNC_SYS_COMMAND0,SYS_OSAL_NV_READ);
 }
 
 bool SysOsalNvReadResponse::create(const std::vector<uint8_t>& data)
