@@ -130,6 +130,11 @@ bool ZigbeeManager::initialise()
 			}
 			respObject->print();
 		}
+		else
+		{
+			//Break from while Loop
+			break;
+		}
 	}
 
 	return true;
