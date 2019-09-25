@@ -17,6 +17,11 @@ namespace SimpleSerialName
 	class Comms;
 };
 
+namespace SimpleDebugName
+{
+	class SimpleDebug;
+};
+
 namespace SimpleZigbeeName
 {
 
@@ -46,6 +51,8 @@ private:
 
 	std::map<uint16_t,std::unique_ptr<BaseObject>> m_syncResponseMap;
 	std::mutex m_syncResponseMapMutex;
+
+	SimpleDebugName::SimpleDebug* m_debug;
 };
 
 }

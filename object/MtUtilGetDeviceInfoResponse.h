@@ -10,6 +10,11 @@
 #include <utility>
 #include "BaseObject.h"
 
+namespace SimpleDebugName
+{
+	class SimpleDebug;
+};
+
 namespace SimpleZigbeeName
 {
 
@@ -53,6 +58,7 @@ public:
 	DeviceInfoResult getResult();
 
 private:
+	SimpleDebugName::SimpleDebug* m_debug;
 	DeviceInfoStruct m_deviceInfo;
 	std::vector<uint16_t> m_assocDevicesList;
 	bool m_dataPopulated = false;

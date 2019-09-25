@@ -13,6 +13,11 @@
 #include<memory>
 #include "../object/BaseObject.h"
 
+namespace SimpleDebugName
+{
+	class SimpleDebug;
+};
+
 namespace SimpleZigbeeName
 {
 
@@ -43,11 +48,13 @@ enum SubSystemType : uint8_t
 
 class Factory {
 public:
-	Factory() = default;
+	Factory();
 	virtual ~Factory() = default;
 	std::unique_ptr<BaseObject> create(const std::vector<uint8_t>& data);
 
 private:
+	SimpleDebugName::SimpleDebug* m_debug;
+
 	std::unique_ptr<BaseObject> createSysinterfaceResponse(const SysCommandsEnum command, const std::vector<uint8_t>& data);
 	std::unique_ptr<BaseObject> createMtUtilResponse(const MtUtilCommandsEnum command, const std::vector<uint8_t>& data);
 	std::unique_ptr<BaseObject> createMtZdoResponse(const MtZdoCommandsEnum command, const std::vector<uint8_t>& data);

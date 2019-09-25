@@ -5,9 +5,11 @@
  *      Author: hemant
  */
 #include <vector>
-#include <iostream>
+#include <sstream>
+#include <string>
 #include <cstring>
 #include <algorithm>
+#include "../../simpleDebug/SimpleDebug.h"
 #include "../../simpleSerial/utility/Utility.h"
 #include "../utility/Utility.h"
 #include "MtUtilGetDeviceInfoResponse.h"
@@ -18,6 +20,7 @@ namespace SimpleZigbeeName
 MtUtilGetDeviceInfoResponse::MtUtilGetDeviceInfoResponse()
 {
 	m_command = Utility::getSyncyResponseCommand(SYNC_MT_UTIL_COMMAND0,MT_UTIL_GET_DEVICE_INFO);
+	m_debug = SimpleDebugName::SimpleDebug::instance();
 }
 
 bool MtUtilGetDeviceInfoResponse::create(const std::vector<uint8_t>& data)
@@ -25,12 +28,13 @@ bool MtUtilGetDeviceInfoResponse::create(const std::vector<uint8_t>& data)
 	//Sanity Test
 	if(data[CMD1_INDEX] != MT_UTIL_GET_DEVICE_INFO)
 	{
-		std::cout<<__PRETTY_FUNCTION__<< " Command didn't match\r\n";
+		m_debug->log(SimpleDebugName::CRITICAL_WARNING, std::string(__PRETTY_FUNCTION__) + " Command didn't match\r\n");
+
 		return false;
 	}
 	if(data.size() < sizeof(m_deviceInfo))
 	{
-		std::cout<<__PRETTY_FUNCTION__<< " Data Less than expected\r\n";
+		m_debug->log(SimpleDebugName::CRITICAL_WARNING, std::string(__PRETTY_FUNCTION__) + " Data Less than expected\r\n");
 		return false;
 	}
 	//Looks like we have data... Copy it
@@ -53,12 +57,12 @@ void MtUtilGetDeviceInfoResponse::print()
 {
 	if(m_dataPopulated == false)
 	{
-		std::cout<<__PRETTY_FUNCTION__<< "Incorrect data" <<std::endl;
+		m_debug->log(SimpleDebugName::WARNING, std::string(__PRETTY_FUNCTION__) + "Incorrect data\r\n");
 		return;
 	}
 	if(m_deviceInfo.Status == STATUS_FAIL)
 	{
-		std::cout<<__PRETTY_FUNCTION__<< "Device Status failed..." <<std::endl;
+		m_debug->log(SimpleDebugName::WARNING, std::string(__PRETTY_FUNCTION__) + "Device Status failed...\r\n");
 		return;
 	}
 	//For now we jut print Device State
@@ -126,8 +130,12 @@ void MtUtilGetDeviceInfoResponse::print()
 			break;
 		}
 	}
-	std::cout<<__PRETTY_FUNCTION__<< "Device Type : " << std::hex << (int)m_deviceInfo.DeviceType << std::endl;
-	std::cout<<__PRETTY_FUNCTION__<< "Device State : " << devState << std::endl;
+    std::stringstream outputSting;
+    outputSting << __PRETTY_FUNCTION__ << " : Device Type : " << std::hex << (int)m_deviceInfo.DeviceType << std::endl;
+	m_debug->log(SimpleDebugName::LOG, outputSting);
+	outputSting.str(std::string());
+	outputSting <<__PRETTY_FUNCTION__<< " : Device State : " << devState << std::endl;
+	m_debug->log(SimpleDebugName::LOG, outputSting);
 }
 
 DeviceInfoResult MtUtilGetDeviceInfoResponse::getResult()

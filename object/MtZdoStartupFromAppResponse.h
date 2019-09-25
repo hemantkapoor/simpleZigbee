@@ -10,6 +10,11 @@
 
 #include "BaseObject.h"
 
+namespace SimpleDebugName
+{
+	class SimpleDebug;
+};
+
 namespace SimpleZigbeeName {
 
 enum ZdoStartupStatus : uint8_t
@@ -34,6 +39,7 @@ public:
 private:
 	uint16_t m_command;
 	ZdoStartupStatus m_status = RESTORED_NETWORK_STATE;
+	SimpleDebugName::SimpleDebug* m_debug;
 };
 
 } /* namespace SimpleZigbeeName */

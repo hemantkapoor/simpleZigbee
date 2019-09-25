@@ -10,6 +10,11 @@
 
 #include "BaseObject.h"
 
+namespace SimpleDebugName
+{
+	class SimpleDebug;
+};
+
 namespace SimpleZigbeeName {
 
 const uint8_t SYS_OSAL_NV_READ_STATUS_INDEX = DATA_INDEX;
@@ -30,6 +35,7 @@ private:
 	uint16_t m_command;
 	bool m_dataPopulated = false;
 	std::vector<uint8_t> m_valueVector;
+	SimpleDebugName::SimpleDebug* m_debug;
 };
 
 } /* namespace SimpleZigbeeName */

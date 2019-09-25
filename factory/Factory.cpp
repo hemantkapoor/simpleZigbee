@@ -4,7 +4,7 @@
  *  Created on: 20 Sep 2019
  *      Author: hemant
  */
-#include <iostream>
+#include "../../simpleDebug/SimpleDebug.h"
 #include "../../simpleSerial/utility/Utility.h"
 #include "../object/SysVersionResponse.h"
 #include "../object/SysOsalNvReadResponse.h"
@@ -13,6 +13,11 @@
 #include "Factory.h"
 
 using namespace SimpleZigbeeName;
+
+Factory::Factory()
+{
+	m_debug = SimpleDebugName::SimpleDebug::instance();
+}
 
 
 std::unique_ptr<BaseObject> Factory::create(const std::vector<uint8_t>& data)
@@ -57,8 +62,8 @@ std::unique_ptr<BaseObject> Factory::create(const std::vector<uint8_t>& data)
 	if(!retVal)
 	{
 	//For now there is NO object that can be created
-		std::cout << __PRETTY_FUNCTION__<< " : Nothing to handle below data "<<std::endl;
-		std::cout<<__PRETTY_FUNCTION__<< " : " << SimpleSerialName::Utility::hexStr(data.data(),data.size())<<std::endl;
+		m_debug->log(SimpleDebugName::CRITICAL_WARNING, std::string(__PRETTY_FUNCTION__) + " : Nothing to handle below data \r\n");
+		m_debug->log(SimpleDebugName::CRITICAL_WARNING, std::string(__PRETTY_FUNCTION__) + " : " + SimpleSerialName::Utility::hexStr(data.data(),data.size()) + "\r\n");
 	}
 	return retVal;
 }

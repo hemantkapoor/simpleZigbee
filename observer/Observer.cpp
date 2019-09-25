@@ -4,9 +4,10 @@
  *  Created on: 20 Sep 2019
  *      Author: hemant
  */
-#include <iostream>
+#include <sstream>
 #include <vector>
 #include <algorithm>
+#include "../../simpleDebug/SimpleDebug.h"
 #include "../../simpleSerial/utility/Utility.h"
 #include "../object/BaseObject.h"
 #include "Observer.h"
@@ -15,13 +16,14 @@ using namespace SimpleZigbeeName;
 
 Observer::Observer(std::shared_ptr<SimpleSerialName::Comms> comms):m_comms(comms)
 {
+	m_debug = SimpleDebugName::SimpleDebug::instance();
 }
 
 void Observer::handleReceivedMessage(std::unique_ptr<BaseObject> messageObject)
 {
 	if(!messageObject)
 	{
-		std::cout<<__PRETTY_FUNCTION__<< " : No Object present"<<std::endl;
+		m_debug->log(SimpleDebugName::ERROR, std::string(__PRETTY_FUNCTION__) + " : No Object present\r\n");
 		return;
 	}
 	auto command = messageObject->getCommand();
@@ -36,7 +38,9 @@ void Observer::handleReceivedMessage(std::unique_ptr<BaseObject> messageObject)
 	}
 	std::lock_guard<std::mutex> guard(m_syncResponseMapMutex);
 	m_syncResponseMap[command] = std::move(messageObject);
-	std::cout<<__PRETTY_FUNCTION__<< " : Added Command Id 0x"<< std::hex << int(command) << std::endl;
+	std::stringstream outputSting;
+	outputSting <<__PRETTY_FUNCTION__<< " : Added Command Id 0x"<< std::hex << int(command) << std::endl;
+	m_debug->log(SimpleDebugName::LOG, outputSting);
 }
 
 void Observer::requestSyncResponse(uint16_t command)
@@ -67,6 +71,6 @@ void Observer::removeRequestSyncResponse(uint16_t command)
 
 Observer::~Observer()
 {
-	std::cout<<__PRETTY_FUNCTION__<< " : Destructor called \r\n";
+	m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Destructor called \r\n");
 }
 

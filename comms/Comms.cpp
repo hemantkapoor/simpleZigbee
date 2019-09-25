@@ -4,7 +4,7 @@
  *  Created on: 19 Sep 2019
  *      Author: hemant
  */
-#include <iostream>
+#include "../../simpleDebug/SimpleDebug.h"
 #include "../observer/Observer.h"
 #include "../object/BaseObject.h"
 #include "../factory/Factory.h"
@@ -23,14 +23,12 @@ ZigbeeComms::ZigbeeComms(std::shared_ptr<SimpleSerialName::Comms> comms, std::sh
 ZigbeeComms::~ZigbeeComms()
 {
 	// TODO Auto-generated destructor stub
-	std::cout<<__PRETTY_FUNCTION__<< " : Destructor called \r\n";
+	SimpleDebugName::SimpleDebug::instance()->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Destructor called \r\n");
 }
 
 
 void ZigbeeComms::callback(std::vector<uint8_t>& data)
 {
-	//For test purpose
-	//std::cout<<__PRETTY_FUNCTION__<< " : " << SimpleSerialName::Utility::hexStr(data.data(),data.size())<<std::endl;
 	//Lets go through every byte and decide what needs to be done
 	for(auto value : data)
 	{

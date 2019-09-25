@@ -4,8 +4,8 @@
  *  Created on: 19 Sep 2019
  *      Author: hemant
  */
-#include <iostream>
 #include <vector>
+#include "../../simpleDebug/SimpleDebug.h"
 #include "../../simpleSerial/utility/Utility.h"
 #include "../comms/Comms.h"
 #include "../observer/Observer.h"
@@ -21,12 +21,13 @@ ZigbeeManager::ZigbeeManager(std::shared_ptr<SimpleSerialName::Comms> comms):m_c
 	m_observer= std::make_shared<Observer>(comms);
 	m_zigbeeComms = std::make_shared<ZigbeeComms>(comms,m_observer);
 	m_comms->addCallback(m_zigbeeComms);
+	m_debug = SimpleDebugName::SimpleDebug::instance();
 }
 
 bool ZigbeeManager::initialise()
 {
 	//First command is get the version
-	std::cout<<__PRETTY_FUNCTION__<< " : Requesting Firmware Version\r\n";
+	m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Requesting Firmware Version\r\n");
 	auto getVersion =  Utility::constructMessage(SYNC_SYS_COMMAND0, SYS_VERSION);
 	auto responseCommandExpected = Utility::getSyncyResponseCommand(SYNC_SYS_COMMAND0, SYS_VERSION);
 	m_observer->requestSyncResponse(responseCommandExpected);
@@ -38,59 +39,60 @@ bool ZigbeeManager::initialise()
 	{
 		//Remove and return
 		m_observer->removeRequestSyncResponse(responseCommandExpected);
-		std::cout<<__PRETTY_FUNCTION__<< " : No Response for Firmware Version\r\n";
+		m_debug->log(SimpleDebugName::CRITICAL_ERROR, std::string(__PRETTY_FUNCTION__) + " : No Response for Firmware Version\r\n");
 		return false;
 	}
 	respObject->print();
 
 	//Next we Read NVM to check ZNP_HAS_CONFIGURED
-	std::cout<<__PRETTY_FUNCTION__<< " : Checking if ZNP_HAS_CONFIGURED\r\n";
+	m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Checking if ZNP_HAS_CONFIGURED\r\n");
 	auto nvmVal = readOsalNvm(ZNP_HAS_CONFIGURED_ADDRESS.id,ZNP_HAS_CONFIGURED_ADDRESS.offset);
 	if(nvmVal.empty())
 	{
-		std::cout<<__PRETTY_FUNCTION__<< " : Cannot get ZNP_HAS_CONFIGURED value... Bailing\r\n";
+		m_debug->log(SimpleDebugName::CRITICAL_ERROR, std::string(__PRETTY_FUNCTION__) + " : Cannot get ZNP_HAS_CONFIGURED value... Bailing\r\n");
 		return false;
 	}
 	if(nvmVal[0] != 0x55)
 	{
-		std::cout<<__PRETTY_FUNCTION__<< " : ZNP has not been configured... Bailing\r\n";
+		m_debug->log(SimpleDebugName::CRITICAL_ERROR, std::string(__PRETTY_FUNCTION__) + " : ZNP has not been configured... Bailing\r\n");
 		return false;
 	}
-	std::cout<<__PRETTY_FUNCTION__<< " : ZNP has been configured...\r\n";
+	m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : ZNP has been configured...\r\n");
 
 
-	std::cout<<__PRETTY_FUNCTION__<< " : Reading PAN ID\r\n";
+	m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Reading PAN ID\r\n");
 	nvmVal = readOsalNvm(ZCD_NV_PANID_ADDRESS.id,ZCD_NV_PANID_ADDRESS.offset);
 	if(nvmVal.empty())
 	{
-		std::cout<<__PRETTY_FUNCTION__<< " : Cannot Read PAN ID... Bailing\r\n";
+		m_debug->log(SimpleDebugName::CRITICAL_ERROR, std::string(__PRETTY_FUNCTION__) + " : Cannot Read PAN ID... Bailing\r\n");
+
 		return false;
 	}
 
-	std::cout<<__PRETTY_FUNCTION__<< " : Reading Extended PAN ID\r\n";
+	m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Reading Extended PAN ID\r\n");
 
 	nvmVal = readOsalNvm(ZCD_NV_EXTENDED_PAN_ID_ADDRESS.id,ZCD_NV_EXTENDED_PAN_ID_ADDRESS.offset);
 	if(nvmVal.empty())
 	{
-		std::cout<<__PRETTY_FUNCTION__<< " : Cannot Read Extended PAN ID... Bailing\r\n";
+		m_debug->log(SimpleDebugName::CRITICAL_ERROR, std::string(__PRETTY_FUNCTION__) + " : Cannot Read Extended PAN ID... Bailing\r\n");
 		return false;
 	}
 
-	std::cout<<__PRETTY_FUNCTION__<< " : Reading Channel List\r\n";
+	m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Reading Channel List\r\n");
 
 	nvmVal = readOsalNvm(ZCD_NV_CHANLIST_ADDRESS.id,ZCD_NV_CHANLIST_ADDRESS.offset);
 	if(nvmVal.empty())
 	{
-		std::cout<<__PRETTY_FUNCTION__<< " : Cannot Read Channel List... Bailing\r\n";
+		m_debug->log(SimpleDebugName::CRITICAL_ERROR, std::string(__PRETTY_FUNCTION__) + " : Cannot Read Channel List... Bailing\r\n");
 		return false;
 	}
 
-	std::cout<<__PRETTY_FUNCTION__<< " : Reading ZCD_NV_PRECFGKEYS_ENABLE\r\n";
+	m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Reading ZCD_NV_PRECFGKEYS_ENABLE\r\n");
 
 	nvmVal = readOsalNvm(ZCD_NV_PRECFGKEYS_ENABLE_ADDRESS.id,ZCD_NV_PRECFGKEYS_ENABLE_ADDRESS.offset);
 	if(nvmVal.empty())
 	{
-		std::cout<<__PRETTY_FUNCTION__<< " : Cannot Read ZCD_NV_PRECFGKEYS_ENABLE... Bailing\r\n";
+		m_debug->log(SimpleDebugName::CRITICAL_ERROR, std::string(__PRETTY_FUNCTION__) + " : Cannot Read ZCD_NV_PRECFGKEYS_ENABLE... Bailing\r\n");
 		return false;
 	}
 
@@ -100,32 +102,32 @@ bool ZigbeeManager::initialise()
 	//Lets sleep for a seconds
 	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-	std::cout<<__PRETTY_FUNCTION__<< " : Getting Device Ready\r\n";
+	m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Getting Device Ready\r\n");
 
 	while(true)
 	{
 		auto deviceState = getDeviceState();
 		if(deviceState == Device_ERROR)
 		{
-			std::cout<<__PRETTY_FUNCTION__<< " : Cannot get Device State... Bailing\r\n";
+			m_debug->log(SimpleDebugName::CRITICAL_ERROR, std::string(__PRETTY_FUNCTION__) + " : Cannot get Device State... Bailing\r\n");
 			return false;
 		}
 		if(deviceState == INIT_NOT_STARTED_AUTOMATICALLY)
 		{
 			//We start the device
-			std::cout<<__PRETTY_FUNCTION__<< " : Starting Device\r\n";
+			m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Starting Device\r\n");
 			auto transmitMessage =  Utility::constructMessage(SYNC_MT_ZDO_COMMAND0, ZDO_STARTUP_FROM_APP, MessageDataType{0x00, 0x03});
 			auto responseCommandExpected = Utility::getSyncyResponseCommand(SYNC_MT_ZDO_COMMAND0, ZDO_STARTUP_FROM_APP);
 			m_observer->requestSyncResponse(responseCommandExpected);
 			m_comms->transmitData(transmitMessage);
 			//Lets sleep for a seconds
-			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+			std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 			auto respObject = m_observer->getSyncResponse(responseCommandExpected);
 			if(!respObject)
 			{
 				//Remove and return
 				m_observer->removeRequestSyncResponse(responseCommandExpected);
-				std::cout<<__PRETTY_FUNCTION__<< " : No Response for Start Device Command\r\n";
+				m_debug->log(SimpleDebugName::CRITICAL_ERROR, std::string(__PRETTY_FUNCTION__) + " : No Response for Start Device Command\r\n");
 				return false;
 			}
 			respObject->print();
@@ -154,7 +156,7 @@ std::vector<uint8_t> ZigbeeManager::readOsalNvm(uint16_t id, uint8_t offset)
 	if(!respObject)
 	{
 		//Remove and return
-		std::cout<<__PRETTY_FUNCTION__<< " : No response for Requesting NVM User Data\r\n";
+		m_debug->log(SimpleDebugName::CRITICAL_WARNING, std::string(__PRETTY_FUNCTION__) + " : No response for Requesting NVM User Data\r\n");
 		m_observer->removeRequestSyncResponse(responseCommandExpected);
 		return retData;
 	}
@@ -167,7 +169,7 @@ std::vector<uint8_t> ZigbeeManager::readOsalNvm(uint16_t id, uint8_t offset)
 	}
 	else
 	{
-		std::cout<<__PRETTY_FUNCTION__<< " : Error converting to dynamic object\r\n";
+		m_debug->log(SimpleDebugName::CRITICAL_WARNING, std::string(__PRETTY_FUNCTION__) + " : Error converting to dynamic object\r\n");
 	}
 	return retData;
 }
@@ -179,7 +181,7 @@ DeviceStateEnum ZigbeeManager::getDeviceState()
 	auto retValue = getDeviceInfo();
 	if(std::get<0>(retValue) == false)
 	{
-		std::cout<<__PRETTY_FUNCTION__<< " : Cannot get Device Info... Bailing\r\n";
+		m_debug->log(SimpleDebugName::CRITICAL_WARNING, std::string(__PRETTY_FUNCTION__) + " : Cannot get Device Info... Bailing\r\n");
 		return retState;
 	}
 	auto deviceInfoPair = std::get<1>(retValue);
@@ -193,7 +195,7 @@ DeviceStateEnum ZigbeeManager::getDeviceState()
 
 DevReturnType ZigbeeManager::getDeviceInfo()
 {
-	std::cout<<__PRETTY_FUNCTION__<< " : Requesting Device Information\r\n";
+	m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Requesting Device Information\r\n");
 	auto responseCommandExpected = Utility::getSyncyResponseCommand(SYNC_MT_UTIL_COMMAND0,MT_UTIL_GET_DEVICE_INFO);
 	m_observer->requestSyncResponse(responseCommandExpected);
 
@@ -209,7 +211,7 @@ DevReturnType ZigbeeManager::getDeviceInfo()
 	{
 		//Remove and return
 		m_observer->removeRequestSyncResponse(responseCommandExpected);
-		std::cout<<__PRETTY_FUNCTION__<< " : No Response for Firmware Version\r\n";
+		m_debug->log(SimpleDebugName::CRITICAL_WARNING, std::string(__PRETTY_FUNCTION__) + " : No Response for Firmware Version\r\n");
 		return std::make_pair(false,retVal);
 	}
 	respObject->print();
@@ -221,14 +223,14 @@ DevReturnType ZigbeeManager::getDeviceInfo()
 	}
 	else
 	{
-		std::cout<<__PRETTY_FUNCTION__<< " : Error converting to dynamic object\r\n";
+		m_debug->log(SimpleDebugName::CRITICAL_WARNING, std::string(__PRETTY_FUNCTION__) + " : Error converting to dynamic object\r\n");
 	}
 	return std::make_pair(false,retVal);
 }
 
 ZigbeeManager::~ZigbeeManager()
 {
-	std::cout<<__PRETTY_FUNCTION__<< " : Destructor called \r\n";
+	m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Destructor called \r\n");
 	m_comms->removeCallback(m_zigbeeComms);
 }
 

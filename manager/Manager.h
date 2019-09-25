@@ -18,6 +18,11 @@ namespace SimpleSerialName
 	class Comms;
 };
 
+namespace SimpleDebugName
+{
+	class SimpleDebug;
+};
+
 namespace SimpleZigbeeName
 
 {
@@ -50,6 +55,7 @@ namespace SimpleZigbeeName
 		std::shared_ptr<SimpleSerialName::Comms> m_comms;
 		std::shared_ptr<ZigbeeComms> m_zigbeeComms;
 		std::shared_ptr<Observer> m_observer;
+		SimpleDebugName::SimpleDebug* m_debug;
 
 
 		//Helper functions

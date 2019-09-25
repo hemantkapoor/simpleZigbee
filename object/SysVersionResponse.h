@@ -10,6 +10,11 @@
 
 #include "BaseObject.h"
 
+namespace SimpleDebugName
+{
+	class SimpleDebug;
+};
+
 namespace SimpleZigbeeName {
 
 struct __attribute__ ((packed)) VersionAttributeStruct
@@ -33,6 +38,7 @@ private:
 	VersionAttributeStruct m_version;
 	bool m_dataPopulated = false;
 	uint16_t m_command;
+	SimpleDebugName::SimpleDebug* m_debug;
 };
 
 } /* namespace SimpleZigbeeName */
