@@ -63,6 +63,8 @@ namespace SimpleZigbeeName
 		std::vector<uint8_t> readOsalNvm(uint16_t id, uint8_t offset);
 		DeviceStateEnum getDeviceState();
 		DevReturnType getDeviceInfo();
+		bool startCoordinator();
+		bool getNodeDescription(uint16_t destinationAddress,uint16_t networkAddress);
 
 	};
 };

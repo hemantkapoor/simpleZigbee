@@ -9,6 +9,7 @@
 #include "../object/SysVersionResponse.h"
 #include "../object/SysOsalNvReadResponse.h"
 #include "../object/MtUtilGetDeviceInfoResponse.h"
+#include "../object/MtZdoSyncGeneralResponse.h"
 #include "../object/MtZdoStartupFromAppResponse.h"
 #include "Factory.h"
 
@@ -203,7 +204,15 @@ std::unique_ptr<BaseObject> Factory::createMtZdoResponse(const MtZdoCommandsEnum
 		case ZDO_BIND_REQ:
 		case ZDO_UNBIND_REQ:
 		case ZDO_SET_LINK_KEY:
-		case ZDO_REMOVE_LINK_KEY:
+		case ZDO_REMOVE_LINK_KEY:		{
+			auto retval1 = std::make_unique<MtZdoSyncGeneralResponse>();
+			if(retval1->create(data) == true)
+			{
+				retVal = std::move(retval1);
+			}
+			break;
+		}
+
 		case ZDO_GET_LINK_KEY:
 		case ZDO_NWK_DISCOVERY_REQ_OR_ZDO_SET_REJOIN_PARAMETERS:
 		case ZDO_JOIN_REQ:

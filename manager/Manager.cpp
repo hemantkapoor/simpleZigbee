@@ -97,48 +97,27 @@ bool ZigbeeManager::initialise()
 	}
 
 	//HK Not sure what this will do
-	auto getPreCnfgKey =  Utility::constructMessage(SYNC_MT_SAPI_COMMAND0, MT_SAPI_ZB_READ_CONFIGURATION, MessageDataType{0x62});
-	m_comms->transmitData(getPreCnfgKey);
+	//auto getPreCnfgKey =  Utility::constructMessage(SYNC_MT_SAPI_COMMAND0, MT_SAPI_ZB_READ_CONFIGURATION, MessageDataType{0x62});
+	//m_comms->transmitData(getPreCnfgKey);
 	//Lets sleep for a seconds
-	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+	//std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-	m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Getting Device Ready\r\n");
-
-	while(true)
+	m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Starting Device as Coordinator\r\n");
+	if(startCoordinator() == false)
 	{
-		auto deviceState = getDeviceState();
-		if(deviceState == Device_ERROR)
-		{
-			m_debug->log(SimpleDebugName::CRITICAL_ERROR, std::string(__PRETTY_FUNCTION__) + " : Cannot get Device State... Bailing\r\n");
-			return false;
-		}
-		if(deviceState == INIT_NOT_STARTED_AUTOMATICALLY)
-		{
-			//We start the device
-			m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Starting Device\r\n");
-			auto transmitMessage =  Utility::constructMessage(SYNC_MT_ZDO_COMMAND0, ZDO_STARTUP_FROM_APP, MessageDataType{0x00, 0x03});
-			auto responseCommandExpected = Utility::getSyncyResponseCommand(SYNC_MT_ZDO_COMMAND0, ZDO_STARTUP_FROM_APP);
-			m_observer->requestSyncResponse(responseCommandExpected);
-			m_comms->transmitData(transmitMessage);
-			//Lets sleep for a seconds
-			std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-			auto respObject = m_observer->getSyncResponse(responseCommandExpected);
-			if(!respObject)
-			{
-				//Remove and return
-				m_observer->removeRequestSyncResponse(responseCommandExpected);
-				m_debug->log(SimpleDebugName::CRITICAL_ERROR, std::string(__PRETTY_FUNCTION__) + " : No Response for Start Device Command\r\n");
-				return false;
-			}
-			respObject->print();
-		}
-		else
-		{
-			//Break from while Loop
-			break;
-		}
+		m_debug->log(SimpleDebugName::CRITICAL_ERROR, std::string(__PRETTY_FUNCTION__) + " : Cannot start Device as coordinator. Have you flashed the stick\r\n");
+		return false;
+	}
+	m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Device started as Coordinator\r\n");
+	m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Getting Node Description\r\n");
+	if(getNodeDescription(0,0) == false)
+	{
+		m_debug->log(SimpleDebugName::CRITICAL_ERROR, std::string(__PRETTY_FUNCTION__) + " : Cannot Get Node description\r\n");
+		return false;
+
 	}
 
+	//Lets get Node Description
 	return true;
 }
 
@@ -226,6 +205,74 @@ DevReturnType ZigbeeManager::getDeviceInfo()
 		m_debug->log(SimpleDebugName::CRITICAL_WARNING, std::string(__PRETTY_FUNCTION__) + " : Error converting to dynamic object\r\n");
 	}
 	return std::make_pair(false,retVal);
+}
+
+bool ZigbeeManager::startCoordinator()
+{
+	int retryAttempt = 5;
+	DeviceStateEnum deviceState(INIT_NOT_STARTED_AUTOMATICALLY);
+	while(deviceState != STARTED_AS_ZIGBEE_COORDINATOR)
+	{
+		deviceState = getDeviceState();
+		if(deviceState == Device_ERROR)
+		{
+			m_debug->log(SimpleDebugName::CRITICAL_ERROR, std::string(__PRETTY_FUNCTION__) + " : Cannot get Device State... Bailing\r\n");
+			return false;
+		}
+		if(deviceState == INIT_NOT_STARTED_AUTOMATICALLY)
+		{
+			//We start the device
+			m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Starting Device\r\n");
+			auto transmitMessage =  Utility::constructMessage(SYNC_MT_ZDO_COMMAND0, ZDO_STARTUP_FROM_APP, MessageDataType{0x00, 0x03});
+			auto responseCommandExpected = Utility::getSyncyResponseCommand(SYNC_MT_ZDO_COMMAND0, ZDO_STARTUP_FROM_APP);
+			m_observer->requestSyncResponse(responseCommandExpected);
+			m_comms->transmitData(transmitMessage);
+			//Lets sleep for a seconds
+			std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+			auto respObject = m_observer->getSyncResponse(responseCommandExpected);
+			if(!respObject)
+			{
+				//Remove and return
+				m_observer->removeRequestSyncResponse(responseCommandExpected);
+				if(--retryAttempt == 0)
+				{
+					m_debug->log(SimpleDebugName::CRITICAL_ERROR, std::string(__PRETTY_FUNCTION__) + " : No Response for Start Device Command\r\n");
+					return false;
+				}
+				m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : No Response for Start Device Command. Retrying\r\n");
+				std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+				continue;
+			}
+			respObject->print();
+		}
+	}
+
+	return true;
+}
+
+bool ZigbeeManager::getNodeDescription(uint16_t destinationAddress,uint16_t networkAddress)
+{
+	auto responseCommandExpected = Utility::getSyncyResponseCommand(SYNC_MT_ZDO_COMMAND0,ZDO_NODE_DESC_REQ);
+	m_observer->requestSyncResponse(responseCommandExpected);
+
+	auto dataTosend =  Utility::constructMessage(SYNC_MT_ZDO_COMMAND0,ZDO_NODE_DESC_REQ,
+			MessageDataType{(uint8_t)(destinationAddress & 0xFF), (uint8_t)((destinationAddress & 0xFF00) >> 8),
+			(uint8_t)(networkAddress & 0xFF), (uint8_t)((networkAddress & 0xFF00) >> 8)
+			});
+	m_comms->transmitData(dataTosend);
+	//Lets sleep for a seconds
+	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+	auto respObject = m_observer->getSyncResponse(responseCommandExpected);
+	if(!respObject)
+	{
+		//Remove and return
+		m_debug->log(SimpleDebugName::CRITICAL_WARNING, std::string(__PRETTY_FUNCTION__) + " : No response for Requesting NVM User Data\r\n");
+		m_observer->removeRequestSyncResponse(responseCommandExpected);
+		return false;
+	}
+	respObject->print();
+
+	return true;
 }
 
 ZigbeeManager::~ZigbeeManager()
