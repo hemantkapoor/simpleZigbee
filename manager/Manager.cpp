@@ -255,6 +255,9 @@ bool ZigbeeManager::getNodeDescription(uint16_t destinationAddress,uint16_t netw
 	auto responseCommandExpected = Utility::getSyncyResponseCommand(SYNC_MT_ZDO_COMMAND0,ZDO_NODE_DESC_REQ);
 	m_observer->requestSyncResponse(responseCommandExpected);
 
+	auto asyncResponseExpected = Utility::getAsyncyResponseCommand(SYNC_MT_ZDO_COMMAND0,ZDO_NODE_DESC_REQ);
+	m_observer->requestSyncResponse(asyncResponseExpected);
+
 	auto dataTosend =  Utility::constructMessage(SYNC_MT_ZDO_COMMAND0,ZDO_NODE_DESC_REQ,
 			MessageDataType{(uint8_t)(destinationAddress & 0xFF), (uint8_t)((destinationAddress & 0xFF00) >> 8),
 			(uint8_t)(networkAddress & 0xFF), (uint8_t)((networkAddress & 0xFF00) >> 8)
@@ -266,11 +269,21 @@ bool ZigbeeManager::getNodeDescription(uint16_t destinationAddress,uint16_t netw
 	if(!respObject)
 	{
 		//Remove and return
-		m_debug->log(SimpleDebugName::CRITICAL_WARNING, std::string(__PRETTY_FUNCTION__) + " : No response for Requesting NVM User Data\r\n");
+		m_debug->log(SimpleDebugName::CRITICAL_WARNING, std::string(__PRETTY_FUNCTION__) + " : No acknowledgement for Node Description\r\n");
 		m_observer->removeRequestSyncResponse(responseCommandExpected);
 		return false;
 	}
 	respObject->print();
+
+	auto asyncrespObject = m_observer->getSyncResponse(asyncResponseExpected);
+	if(!asyncrespObject)
+	{
+		//Remove and return
+		m_debug->log(SimpleDebugName::CRITICAL_WARNING, std::string(__PRETTY_FUNCTION__) + " : No data received for Node Description\r\n");
+		m_observer->removeRequestSyncResponse(asyncResponseExpected);
+		return false;
+	}
+	asyncrespObject->print();
 
 	return true;
 }

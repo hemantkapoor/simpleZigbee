@@ -28,6 +28,7 @@ const uint8_t TYPE_MASK = 0xE0;
 const uint8_t SYB_SYSTEM_MASK = 0x1F;
 
 const uint8_t TYPE_SRSP		= 0x60;
+const uint8_t TYPE_ARSP		= 0x40;
 
 enum SubSystemType : uint8_t
 {

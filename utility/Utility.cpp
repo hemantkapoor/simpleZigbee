@@ -43,3 +43,8 @@ uint16_t Utility::getSyncyResponseCommand(uint8_t cmd0, uint8_t cmd1)
 {
 	return ((uint16_t(cmd0) | 0x0060) << 8) | cmd1;
 }
+
+uint16_t Utility::getAsyncyResponseCommand(uint8_t cmd0, uint8_t cmd1)
+{
+	return ( ((uint16_t ((cmd0) & CLEAR_TYPE_MASK) |  SYNC_RESPONSE_CMD0_MASK)<< 8) | (cmd1 | SYNC_RESPONSE_CMD1_MASK));
+}

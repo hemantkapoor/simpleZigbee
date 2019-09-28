@@ -16,6 +16,9 @@
 namespace SimpleZigbeeName
 {
 using MessageDataType = std::vector<uint8_t>;
+const uint8_t CLEAR_TYPE_MASK = 0x1F;
+const uint8_t  SYNC_RESPONSE_CMD0_MASK = 0x40;
+const uint8_t  SYNC_RESPONSE_CMD1_MASK = 0x80;
 class Utility
 {
 public:
@@ -27,6 +30,7 @@ public:
 	static uint8_t checksum(const MessageDataType& data);
 	static MessageDataType constructMessage(uint8_t cmd0, uint8_t cmd1, const std::vector<uint8_t>& data = std::vector<uint8_t>{});
 	static uint16_t getSyncyResponseCommand(uint8_t cmd0, uint8_t cmd1);
+	static uint16_t getAsyncyResponseCommand(uint8_t cmd0, uint8_t cmd1);
 };
 
 };//End of namespace
