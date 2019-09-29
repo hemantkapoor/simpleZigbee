@@ -103,6 +103,10 @@ bool ZigbeeManager::initialise()
 		m_debug->log(SimpleDebugName::CRITICAL_ERROR, std::string(__PRETTY_FUNCTION__) + " : Cannot start Device as coordinator. Have you flashed the stick\r\n");
 		return false;
 	}
+
+	//Not sure what we are writting but here goes
+	auto dataTowrite = Utility::constructMessage(SYNC_SYS_COMMAND0, SYS_OSAL_NV_WRITE, MessageDataType{0x84, 0x00, 0x00, 0x04, 0x00, 0x08, 0x00, 0x00});
+	m_comms->transmitData(dataTowrite);
 	m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Device started as Coordinator\r\n");
 	m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Getting Node Description\r\n");
 	if(getNodeDescription(0,0) == false)
@@ -111,6 +115,13 @@ bool ZigbeeManager::initialise()
 		return false;
 
 	}
+	if(getActiveEndPoints(0,0) == false)
+	{
+		m_debug->log(SimpleDebugName::CRITICAL_ERROR, std::string(__PRETTY_FUNCTION__) + " : Cannot Get Active End Points\r\n");
+		return false;
+
+	}
+
 	//Lets get Node Description
 	return true;
 }
@@ -268,6 +279,42 @@ bool ZigbeeManager::getNodeDescription(uint16_t destinationAddress,uint16_t netw
 		return false;
 	}
 	asyncrespObject->print();
+	return true;
+}
+
+bool ZigbeeManager::getActiveEndPoints(uint16_t destinationAddress,uint16_t networkAddress)
+{
+	auto responseCommandExpected = Utility::getSyncyResponseCommand(SYNC_MT_ZDO_COMMAND0,ZDO_ACTIVE_EP_REQ);
+	m_observer->requestSyncResponse(responseCommandExpected);
+
+	auto asyncResponseExpected = Utility::getAsyncyResponseCommand(SYNC_MT_ZDO_COMMAND0,ZDO_ACTIVE_EP_REQ);
+	m_observer->requestSyncResponse(asyncResponseExpected);
+
+	auto dataTosend =  Utility::constructMessage(SYNC_MT_ZDO_COMMAND0,ZDO_ACTIVE_EP_REQ,
+			MessageDataType{(uint8_t)(destinationAddress & 0xFF), (uint8_t)((destinationAddress & 0xFF00) >> 8),
+			(uint8_t)(networkAddress & 0xFF), (uint8_t)((networkAddress & 0xFF00) >> 8)
+			});
+	m_comms->transmitData(dataTosend);
+	auto respObject = m_observer->getSyncResponse(responseCommandExpected,std::chrono::seconds(1));
+	if(!respObject)
+	{
+		//Remove and return
+		m_debug->log(SimpleDebugName::CRITICAL_WARNING, std::string(__PRETTY_FUNCTION__) + " : No acknowledgement for Active End Point\r\n");
+		m_observer->removeRequestSyncResponse(responseCommandExpected);
+		return false;
+	}
+	respObject->print();
+
+	auto asyncrespObject = m_observer->getSyncResponse(asyncResponseExpected,std::chrono::seconds(1));
+	if(!asyncrespObject)
+	{
+		//Remove and return
+		m_debug->log(SimpleDebugName::CRITICAL_WARNING, std::string(__PRETTY_FUNCTION__) + " : No data received for Active End Point\r\n");
+		m_observer->removeRequestSyncResponse(asyncResponseExpected);
+		return false;
+	}
+	asyncrespObject->print();
+
 	return true;
 }
 

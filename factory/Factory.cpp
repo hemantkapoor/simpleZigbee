@@ -12,6 +12,7 @@
 #include "../object/mtZdo/sync/MtZdoSyncGeneralResponse.h"
 #include "../object/mtZdo/sync/MtZdoStartupFromAppResponse.h"
 #include "../object/mtZdo/async/MtZdoAsyncNodeDescResponse.h"
+#include "../object/mtZdo/async/MtZdoAsyncActiveEPResponse.h"
 #include "Factory.h"
 
 using namespace SimpleZigbeeName;
@@ -236,6 +237,14 @@ std::unique_ptr<BaseObject> Factory::createMtZdoResponse(const MtZdoCommandsEnum
 			break;
 		}
 
+		case ZDO_ACTIVE_EP_RSP:
+		{
+			auto retval1 = std::make_unique<MtZdoAsyncActiveEPResponse>();
+			retval1->create(data);
+			retVal = std::move(retval1);
+			break;
+		}
+
 		case ZDO_GET_LINK_KEY:
 		case ZDO_NWK_DISCOVERY_REQ_OR_ZDO_SET_REJOIN_PARAMETERS:
 		case ZDO_JOIN_REQ:
@@ -254,7 +263,6 @@ std::unique_ptr<BaseObject> Factory::createMtZdoResponse(const MtZdoCommandsEnum
 		case ZDO_IEEE_ADDR_RSP:
 		case ZDO_POWER_DESC_RSP:
 		case ZDO_SIMPLE_DESC_RSP:
-		case ZDO_ACTIVE_EP_RSP:
 		case ZDO_MATCH_DESC_RSP:
 		case ZDO_COMPLEX_DESC_RSP:
 		case ZDO_USER_DESC_RSP:
