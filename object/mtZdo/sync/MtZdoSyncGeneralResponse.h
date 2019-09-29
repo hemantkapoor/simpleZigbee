@@ -8,7 +8,7 @@
 #ifndef SRC_SIMPLEZIGBEE_OBJECT_MTZDOSYNCGENERALRESPONSE_H_
 #define SRC_SIMPLEZIGBEE_OBJECT_MTZDOSYNCGENERALRESPONSE_H_
 
-#include "BaseObject.h"
+#include "../../BaseObject.h"
 
 namespace SimpleDebugName
 {

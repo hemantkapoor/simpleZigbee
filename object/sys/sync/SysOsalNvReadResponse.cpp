@@ -8,8 +8,8 @@
 #include <sstream>
 #include <cstring>
 #include <algorithm>
-#include "../../simpleDebug/SimpleDebug.h"
-#include "../utility/Utility.h"
+#include "../../../../simpleDebug/SimpleDebug.h"
+#include "../../../utility/Utility.h"
 #include "SysOsalNvReadResponse.h"
 
 namespace SimpleZigbeeName {

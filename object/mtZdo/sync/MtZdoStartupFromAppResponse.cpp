@@ -5,8 +5,8 @@
  *      Author: hemant
  */
 #include <sstream>
-#include "../../simpleDebug/SimpleDebug.h"
-#include "../utility/Utility.h"
+#include "../../../../simpleDebug/SimpleDebug.h"
+#include "../../../utility/Utility.h"
 #include "MtZdoStartupFromAppResponse.h"
 
 namespace SimpleZigbeeName {

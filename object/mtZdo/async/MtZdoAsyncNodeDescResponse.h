@@ -9,7 +9,7 @@
 #define SRC_SIMPLEZIGBEE_OBJECT_MTZDOASYNCNODEDESCRESPONSE_H_
 
 #include <ostream>
-#include "BaseObject.h"
+#include "../../BaseObject.h"
 namespace SimpleDebugName
 {
 	class SimpleDebug;

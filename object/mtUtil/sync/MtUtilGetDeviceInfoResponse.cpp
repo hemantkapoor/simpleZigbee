@@ -9,9 +9,9 @@
 #include <string>
 #include <cstring>
 #include <algorithm>
-#include "../../simpleDebug/SimpleDebug.h"
-#include "../../simpleSerial/utility/Utility.h"
-#include "../utility/Utility.h"
+#include "../../../../simpleDebug/SimpleDebug.h"
+#include "../../../../simpleSerial/utility/Utility.h"
+#include "../../../utility/Utility.h"
 #include "MtUtilGetDeviceInfoResponse.h"
 
 namespace SimpleZigbeeName

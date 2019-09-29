@@ -11,7 +11,7 @@
 #include <vector>
 #include <memory>
 #include <utility>
-#include "../object/MtUtilGetDeviceInfoResponse.h"
+#include "../object/mtUtil/sync/MtUtilGetDeviceInfoResponse.h"
 
 namespace SimpleSerialName
 {

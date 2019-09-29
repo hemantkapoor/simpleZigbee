@@ -8,7 +8,7 @@
 #ifndef SRC_SIMPLEZIGBEE_OBJECT_MTUTILGETDEVICEINFORESPONSE_H_
 #define SRC_SIMPLEZIGBEE_OBJECT_MTUTILGETDEVICEINFORESPONSE_H_
 #include <utility>
-#include "BaseObject.h"
+#include "../../BaseObject.h"
 
 namespace SimpleDebugName
 {

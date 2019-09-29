@@ -10,7 +10,7 @@
 #include "../comms/Comms.h"
 #include "../observer/Observer.h"
 #include "../object/BaseObject.h"
-#include "../object/SysOsalNvReadResponse.h"
+#include "../object/sys/sync/SysOsalNvReadResponse.h"
 #include "../utility/Utility.h"
 #include "Manager.h"
 

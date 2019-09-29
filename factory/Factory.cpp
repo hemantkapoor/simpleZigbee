@@ -6,12 +6,12 @@
  */
 #include "../../simpleDebug/SimpleDebug.h"
 #include "../../simpleSerial/utility/Utility.h"
-#include "../object/SysVersionResponse.h"
-#include "../object/SysOsalNvReadResponse.h"
-#include "../object/MtUtilGetDeviceInfoResponse.h"
-#include "../object/MtZdoSyncGeneralResponse.h"
-#include "../object/MtZdoStartupFromAppResponse.h"
-#include "../object/MtZdoAsyncNodeDescResponse.h"
+#include "../object/sys/sync/SysVersionResponse.h"
+#include "../object/sys/sync/SysOsalNvReadResponse.h"
+#include "../object/mtUtil/sync/MtUtilGetDeviceInfoResponse.h"
+#include "../object/mtZdo/sync/MtZdoSyncGeneralResponse.h"
+#include "../object/mtZdo/sync/MtZdoStartupFromAppResponse.h"
+#include "../object/mtZdo/async/MtZdoAsyncNodeDescResponse.h"
 #include "Factory.h"
 
 using namespace SimpleZigbeeName;

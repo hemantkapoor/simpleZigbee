@@ -6,8 +6,8 @@
  */
 #include <sstream>
 #include <cstring>
-#include "../../simpleDebug/SimpleDebug.h"
-#include "../utility/Utility.h"
+#include "../../../../simpleDebug/SimpleDebug.h"
+#include "../../../utility/Utility.h"
 #include "SysVersionResponse.h"
 
 namespace SimpleZigbeeName {
