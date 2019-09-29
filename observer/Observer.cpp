@@ -35,6 +35,11 @@ void Observer::handleReceivedMessage(std::unique_ptr<BaseObject> messageObject)
 		{
 			return;
 		}
+		else
+		{
+			m_dataAvailable = true;
+			m_condVar.notify_one();
+		}
 	}
 	std::lock_guard<std::mutex> guard(m_syncResponseMapMutex);
 	m_syncResponseMap[command] = std::move(messageObject);
@@ -48,8 +53,11 @@ void Observer::requestSyncResponse(uint16_t command)
 	std::lock_guard<std::mutex> guard(m_syncRequestResponseListMutex);
 	m_syncRequestResponseList.push_back(command);
 }
-std::unique_ptr<BaseObject> Observer::getSyncResponse(uint16_t command)
+std::unique_ptr<BaseObject> Observer::getSyncResponse(uint16_t command,const std::chrono::seconds& duration)
 {
+	m_dataAvailable = false;
+	std::unique_lock<std::mutex> lck(m_condVarMutex);
+	m_condVar.wait_for(lck, duration, [&](){ return m_dataAvailable.load(); });
 	std::lock_guard<std::mutex> guard(m_syncResponseMapMutex);
 	auto mapIter = m_syncResponseMap.find(command);
 	if(mapIter == m_syncResponseMap.end())

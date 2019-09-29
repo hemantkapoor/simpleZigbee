@@ -32,9 +32,7 @@ bool ZigbeeManager::initialise()
 	auto responseCommandExpected = Utility::getSyncyResponseCommand(SYNC_SYS_COMMAND0, SYS_VERSION);
 	m_observer->requestSyncResponse(responseCommandExpected);
 	m_comms->transmitData(getVersion);
-	//Lets sleep for a seconds
-	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-	auto respObject = m_observer->getSyncResponse(responseCommandExpected);
+	auto respObject = m_observer->getSyncResponse(responseCommandExpected,std::chrono::seconds(1) );
 	if(!respObject)
 	{
 		//Remove and return
@@ -99,9 +97,6 @@ bool ZigbeeManager::initialise()
 	//HK Not sure what this will do
 	//auto getPreCnfgKey =  Utility::constructMessage(SYNC_MT_SAPI_COMMAND0, MT_SAPI_ZB_READ_CONFIGURATION, MessageDataType{0x62});
 	//m_comms->transmitData(getPreCnfgKey);
-	//Lets sleep for a seconds
-	//std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
 	m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Starting Device as Coordinator\r\n");
 	if(startCoordinator() == false)
 	{
@@ -116,22 +111,20 @@ bool ZigbeeManager::initialise()
 		return false;
 
 	}
-
 	//Lets get Node Description
 	return true;
 }
 
 std::vector<uint8_t> ZigbeeManager::readOsalNvm(uint16_t id, uint8_t offset)
 {
+
 	std::vector<uint8_t> retData{};
 	auto responseCommandExpected = Utility::getSyncyResponseCommand(SYNC_SYS_COMMAND0,SYS_OSAL_NV_READ);
 	m_observer->requestSyncResponse(responseCommandExpected);
 
 	auto dataTosend =  Utility::constructMessage(SYNC_SYS_COMMAND0,SYS_OSAL_NV_READ,MessageDataType{(uint8_t)(id & 0xFF), (uint8_t)((id & 0xFF00) >> 8),offset});
 	m_comms->transmitData(dataTosend);
-	//Lets sleep for a seconds
-	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-	auto respObject = m_observer->getSyncResponse(responseCommandExpected);
+	auto respObject = m_observer->getSyncResponse(responseCommandExpected,std::chrono::seconds(1));
 	if(!respObject)
 	{
 		//Remove and return
@@ -156,7 +149,6 @@ std::vector<uint8_t> ZigbeeManager::readOsalNvm(uint16_t id, uint8_t offset)
 DeviceStateEnum ZigbeeManager::getDeviceState()
 {
 	DeviceStateEnum retState(Device_ERROR);
-
 	auto retValue = getDeviceInfo();
 	if(std::get<0>(retValue) == false)
 	{
@@ -168,7 +160,6 @@ DeviceStateEnum ZigbeeManager::getDeviceState()
 	auto deviceInfo = std::get<0>(deviceInfoPair);
 	//Now check system state
 	retState = deviceInfo.DeviceState;
-
 	return retState;
 }
 
@@ -180,9 +171,7 @@ DevReturnType ZigbeeManager::getDeviceInfo()
 
 	auto devInfoRequestMessage =  Utility::constructMessage(SYNC_MT_UTIL_COMMAND0,MT_UTIL_GET_DEVICE_INFO);
 	m_comms->transmitData(devInfoRequestMessage);
-	//Lets sleep for a seconds
-	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-	auto respObject = m_observer->getSyncResponse(responseCommandExpected);
+	auto respObject = m_observer->getSyncResponse(responseCommandExpected,std::chrono::seconds(1));
 	DeviceInfoStruct t1;
 	std::vector<uint16_t> t2;
 	auto retVal = std::make_pair(t1,t2);
@@ -227,9 +216,7 @@ bool ZigbeeManager::startCoordinator()
 			auto responseCommandExpected = Utility::getSyncyResponseCommand(SYNC_MT_ZDO_COMMAND0, ZDO_STARTUP_FROM_APP);
 			m_observer->requestSyncResponse(responseCommandExpected);
 			m_comms->transmitData(transmitMessage);
-			//Lets sleep for a seconds
-			std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-			auto respObject = m_observer->getSyncResponse(responseCommandExpected);
+			auto respObject = m_observer->getSyncResponse(responseCommandExpected,std::chrono::seconds(1));
 			if(!respObject)
 			{
 				//Remove and return
@@ -246,7 +233,6 @@ bool ZigbeeManager::startCoordinator()
 			respObject->print();
 		}
 	}
-
 	return true;
 }
 
@@ -263,9 +249,7 @@ bool ZigbeeManager::getNodeDescription(uint16_t destinationAddress,uint16_t netw
 			(uint8_t)(networkAddress & 0xFF), (uint8_t)((networkAddress & 0xFF00) >> 8)
 			});
 	m_comms->transmitData(dataTosend);
-	//Lets sleep for a seconds
-	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-	auto respObject = m_observer->getSyncResponse(responseCommandExpected);
+	auto respObject = m_observer->getSyncResponse(responseCommandExpected,std::chrono::seconds(1));
 	if(!respObject)
 	{
 		//Remove and return
@@ -275,7 +259,7 @@ bool ZigbeeManager::getNodeDescription(uint16_t destinationAddress,uint16_t netw
 	}
 	respObject->print();
 
-	auto asyncrespObject = m_observer->getSyncResponse(asyncResponseExpected);
+	auto asyncrespObject = m_observer->getSyncResponse(asyncResponseExpected,std::chrono::seconds(1));
 	if(!asyncrespObject)
 	{
 		//Remove and return
@@ -284,7 +268,6 @@ bool ZigbeeManager::getNodeDescription(uint16_t destinationAddress,uint16_t netw
 		return false;
 	}
 	asyncrespObject->print();
-
 	return true;
 }
 

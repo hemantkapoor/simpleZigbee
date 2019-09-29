@@ -11,6 +11,9 @@
 #include <map>
 #include <mutex>
 #include<memory>
+#include <atomic>
+#include <condition_variable>
+#include <chrono>
 
 namespace SimpleSerialName
 {
@@ -41,7 +44,7 @@ public:
 	void handleReceivedMessage(std::unique_ptr<BaseObject>);
 
 	void requestSyncResponse(uint16_t command);
-	std::unique_ptr<BaseObject> getSyncResponse(uint16_t command);
+	std::unique_ptr<BaseObject> getSyncResponse(uint16_t command,const std::chrono::seconds& duration);
 	void removeRequestSyncResponse(uint16_t command);
 private:
 	std::shared_ptr<SimpleSerialName::Comms> m_comms;
@@ -51,6 +54,10 @@ private:
 
 	std::map<uint16_t,std::unique_ptr<BaseObject>> m_syncResponseMap;
 	std::mutex m_syncResponseMapMutex;
+
+	std::condition_variable m_condVar;
+	std::mutex m_condVarMutex;
+	std::atomic<bool> m_dataAvailable = false;
 
 	SimpleDebugName::SimpleDebug* m_debug;
 };
