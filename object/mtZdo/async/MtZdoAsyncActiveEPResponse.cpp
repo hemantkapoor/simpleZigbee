@@ -47,7 +47,7 @@ void MtZdoAsyncActiveEPResponse::print()
 	std::stringstream outputSting;
 	for(auto endPoint : m_endPointList)
 	{
-		outputSting<< endPoint << " ";
+		outputSting<< "0x" << std::hex << (int)endPoint << ", ";
 	}
 	m_debug->log(SimpleDebugName::LOG, outputSting);
 }

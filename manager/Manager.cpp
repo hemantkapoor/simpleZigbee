@@ -138,6 +138,7 @@ bool ZigbeeManager::initialise()
 			for(auto index=0;index<(uint16_t)(sizeof(PublicProfileIDs)/sizeof(uint16_t)); ++index)
 			{
 				endPoint.AppProfId = PublicProfileIDs[index];
+				endPoint.EndPoint = index + 1;
 				if(setActiveEndPoint(endPoint) == false)
 				{
 					m_debug->log(SimpleDebugName::CRITICAL_ERROR, std::string(__PRETTY_FUNCTION__) + " : Failed to set End Points\r\n");
@@ -345,7 +346,8 @@ std::pair<bool,std::vector<uint8_t>> ZigbeeManager::getActiveEndPoints(uint16_t 
 	auto getActiveEndPoints = SimpleSerialName::Utility::dynamicConvert<BaseObject,MtZdoAsyncActiveEPResponse>(std::move(asyncrespObject));
 	if(getActiveEndPoints)
 	{
-		//retData = getActiveEndPoints->getEndPoints();
+		retVector = getActiveEndPoints->getEndPoints();
+		return std::make_pair(true,retVector);
 	}
 	else
 	{
@@ -383,7 +385,7 @@ bool ZigbeeManager::setActiveEndPoint(const AddEndPointStruct& ep)
 			data.push_back(*(ep.AppOutClusterList + index));
 		}
 	}
-	auto dataTosend =  Utility::constructMessage(SYNC_MT_ZDO_COMMAND0,ZDO_ACTIVE_EP_REQ,data);
+	auto dataTosend =  Utility::constructMessage(SYNC_MT_AF_COMMAND0,AF_REGISTER,data);
 	m_comms->transmitData(dataTosend);
 	auto respObject = m_observer->getSyncResponse(responseCommandExpected,std::chrono::seconds(1));
 	if(!respObject)

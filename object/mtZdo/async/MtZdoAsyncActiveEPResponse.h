@@ -24,7 +24,7 @@ struct __attribute__ ((packed))  ActiveEndpointRspStruct
 	uint16_t SrcAddress;
 	DeviceStatusEnum Status;
 	uint16_t NwkAddress;
-	uint8_t ActiveEPCount;
+	uint8_t ActiveEPCount=20;
 };
 
 class MtZdoAsyncActiveEPResponse: public BaseObject {
