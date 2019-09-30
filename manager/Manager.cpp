@@ -11,6 +11,7 @@
 #include "../observer/Observer.h"
 #include "../object/BaseObject.h"
 #include "../object/sys/sync/SysOsalNvReadResponse.h"
+#include "../object/mtZdo/async/MtZdoAsyncActiveEPResponse.h"
 #include "../utility/Utility.h"
 #include "Manager.h"
 
@@ -115,11 +116,35 @@ bool ZigbeeManager::initialise()
 		return false;
 
 	}
-	if(getActiveEndPoints(0,0) == false)
+	auto activeEndPoint = getActiveEndPoints(0,0);
+	//bool endPointResult;
+	//std::vector<uint8_t> endpoints;
+	auto [endPointResult,endpoints] = activeEndPoint;
+	if(endPointResult == false)
 	{
 		m_debug->log(SimpleDebugName::CRITICAL_ERROR, std::string(__PRETTY_FUNCTION__) + " : Cannot Get Active End Points\r\n");
 		return false;
-
+	}
+	else
+	{
+		//Check if end points are present or now
+		if(endpoints.empty())
+		{
+			m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : No end point found. Adding Now\r\n");
+			//We will create end points
+			AddEndPointStruct endPoint;
+			endPoint.EndPoint = 1;
+			endPoint.AppDeviceId = CONFIGURATION_TOOL;
+			for(auto index=0;index<(uint16_t)(sizeof(PublicProfileIDs)/sizeof(uint16_t)); ++index)
+			{
+				endPoint.AppProfId = PublicProfileIDs[index];
+				if(setActiveEndPoint(endPoint) == false)
+				{
+					m_debug->log(SimpleDebugName::CRITICAL_ERROR, std::string(__PRETTY_FUNCTION__) + " : Failed to set End Points\r\n");
+					return false;
+				}
+			}
+		}
 	}
 
 	//Lets get Node Description
@@ -282,8 +307,9 @@ bool ZigbeeManager::getNodeDescription(uint16_t destinationAddress,uint16_t netw
 	return true;
 }
 
-bool ZigbeeManager::getActiveEndPoints(uint16_t destinationAddress,uint16_t networkAddress)
+std::pair<bool,std::vector<uint8_t>> ZigbeeManager::getActiveEndPoints(uint16_t destinationAddress,uint16_t networkAddress)
 {
+	std::vector<uint8_t> retVector{};
 	auto responseCommandExpected = Utility::getSyncyResponseCommand(SYNC_MT_ZDO_COMMAND0,ZDO_ACTIVE_EP_REQ);
 	m_observer->requestSyncResponse(responseCommandExpected);
 
@@ -301,7 +327,7 @@ bool ZigbeeManager::getActiveEndPoints(uint16_t destinationAddress,uint16_t netw
 		//Remove and return
 		m_debug->log(SimpleDebugName::CRITICAL_WARNING, std::string(__PRETTY_FUNCTION__) + " : No acknowledgement for Active End Point\r\n");
 		m_observer->removeRequestSyncResponse(responseCommandExpected);
-		return false;
+		return std::make_pair(false,retVector);
 	}
 	respObject->print();
 
@@ -311,10 +337,63 @@ bool ZigbeeManager::getActiveEndPoints(uint16_t destinationAddress,uint16_t netw
 		//Remove and return
 		m_debug->log(SimpleDebugName::CRITICAL_WARNING, std::string(__PRETTY_FUNCTION__) + " : No data received for Active End Point\r\n");
 		m_observer->removeRequestSyncResponse(asyncResponseExpected);
-		return false;
+		return std::make_pair(false,retVector);
 	}
 	asyncrespObject->print();
 
+	//Convert to get Active End points Object
+	auto getActiveEndPoints = SimpleSerialName::Utility::dynamicConvert<BaseObject,MtZdoAsyncActiveEPResponse>(std::move(asyncrespObject));
+	if(getActiveEndPoints)
+	{
+		//retData = getActiveEndPoints->getEndPoints();
+	}
+	else
+	{
+		m_debug->log(SimpleDebugName::CRITICAL_WARNING, std::string(__PRETTY_FUNCTION__) + " : Error converting to dynamic object\r\n");
+	}
+
+	return std::make_pair(false,retVector);
+}
+
+bool ZigbeeManager::setActiveEndPoint(const AddEndPointStruct& ep)
+{
+	auto responseCommandExpected = Utility::getSyncyResponseCommand(SYNC_MT_AF_COMMAND0,AF_REGISTER);
+	m_observer->requestSyncResponse(responseCommandExpected);
+	//Time to populate the data
+	MessageDataType data{ep.EndPoint};
+	auto AppProfIdVec = Utility::getBigEndian(ep.AppProfId);
+	std::copy(AppProfIdVec.begin(),AppProfIdVec.end(),std::back_inserter(data));
+	auto AppDeviceIdVec = Utility::getBigEndian(ep.AppDeviceId);
+	std::copy(AppDeviceIdVec.begin(),AppDeviceIdVec.end(),std::back_inserter(data));
+	data.push_back(ep.AppDevVer);
+	data.push_back(ep.LatencyReq);
+	data.push_back(ep.AppNumInClusters);
+	if(ep.AppNumInClusters >0 && ep.AppInClusterList != nullptr)
+	{
+		for(auto index=0;index<ep.AppNumInClusters;++index)
+		{
+			data.push_back(*(ep.AppInClusterList + index));
+		}
+	}
+	data.push_back(ep.AppNumOutClusters);
+	if(ep.AppNumOutClusters >0 && ep.AppOutClusterList != nullptr)
+	{
+		for(auto index=0;index<ep.AppNumOutClusters;++index)
+		{
+			data.push_back(*(ep.AppOutClusterList + index));
+		}
+	}
+	auto dataTosend =  Utility::constructMessage(SYNC_MT_ZDO_COMMAND0,ZDO_ACTIVE_EP_REQ,data);
+	m_comms->transmitData(dataTosend);
+	auto respObject = m_observer->getSyncResponse(responseCommandExpected,std::chrono::seconds(1));
+	if(!respObject)
+	{
+		//Remove and return
+		m_debug->log(SimpleDebugName::CRITICAL_WARNING, std::string(__PRETTY_FUNCTION__) + " : No acknowledgement for Adding End Point\r\n");
+		m_observer->removeRequestSyncResponse(responseCommandExpected);
+		return false;
+	}
+	respObject->print();
 	return true;
 }
 

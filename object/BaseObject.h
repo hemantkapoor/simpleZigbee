@@ -50,6 +50,12 @@ enum SysCommandsEnum : uint8_t
 	SYS_NV_COMPACT
 };
 
+const uint8_t SYNC_MT_AF_COMMAND0 = 0X24;
+enum MtAfCommandsEnum : uint8_t
+{
+	AF_REGISTER = 0X00,
+	AF_DATA_REQUEST
+};
 const uint8_t SYNC_MT_ZDO_COMMAND0 = 0X25;
 enum MtZdoCommandsEnum : uint8_t
 {

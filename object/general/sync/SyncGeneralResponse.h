@@ -1,12 +1,11 @@
 /*
- * MtZdoSyncGeneralResponse.h
+ * SyncGeneralResponse.h
  *
  *  Created on: 26 Sep 2019
  *      Author: hemant
  */
 
-#ifndef SRC_SIMPLEZIGBEE_OBJECT_MTZDOSYNCGENERALRESPONSE_H_
-#define SRC_SIMPLEZIGBEE_OBJECT_MTZDOSYNCGENERALRESPONSE_H_
+#pragma once
 
 #include "../../BaseObject.h"
 
@@ -17,11 +16,11 @@ namespace SimpleDebugName
 
 namespace SimpleZigbeeName {
 
-class MtZdoSyncGeneralResponse: public BaseObject
+class SyncGeneralResponse: public BaseObject
 {
 public:
-	MtZdoSyncGeneralResponse();
-	virtual ~MtZdoSyncGeneralResponse() = default;
+	SyncGeneralResponse();
+	virtual ~SyncGeneralResponse() = default;
 	virtual bool create(const std::vector<uint8_t>&) final;
 	virtual void print() final;
 	virtual uint16_t getCommand() final { return m_command; }
@@ -34,5 +33,3 @@ private:
 };
 
 } /* namespace SimpleZigbeeName */
-
-#endif /* SRC_SIMPLEZIGBEE_OBJECT_MTZDOSYNCGENERALRESPONSE_H_ */

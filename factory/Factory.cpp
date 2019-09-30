@@ -9,7 +9,7 @@
 #include "../object/sys/sync/SysVersionResponse.h"
 #include "../object/sys/sync/SysOsalNvReadResponse.h"
 #include "../object/mtUtil/sync/MtUtilGetDeviceInfoResponse.h"
-#include "../object/mtZdo/sync/MtZdoSyncGeneralResponse.h"
+#include "../object/general/sync/SyncGeneralResponse.h"
 #include "../object/mtZdo/sync/MtZdoStartupFromAppResponse.h"
 #include "../object/mtZdo/async/MtZdoAsyncNodeDescResponse.h"
 #include "../object/mtZdo/async/MtZdoAsyncActiveEPResponse.h"
@@ -40,6 +40,12 @@ std::unique_ptr<BaseObject> Factory::create(const std::vector<uint8_t>& data)
 				{
 					SysCommandsEnum command1 = (SysCommandsEnum)data[CMD1_INDEX];
 					retVal = std::move(createSysinterfaceResponse(command1,data));
+					break;
+				}
+				case SUBSYSTEM_AF_INTERFACE:
+				{
+					MtAfCommandsEnum command1 = (MtAfCommandsEnum)data[CMD1_INDEX];
+					retVal = std::move(createMtAfResponse(command1,data));
 					break;
 				}
 				case SUBSYSTEM_ZDO_INTERFACE:
@@ -221,7 +227,7 @@ std::unique_ptr<BaseObject> Factory::createMtZdoResponse(const MtZdoCommandsEnum
 		case ZDO_UNBIND_REQ:
 		case ZDO_SET_LINK_KEY:
 		case ZDO_REMOVE_LINK_KEY:		{
-			auto retval1 = std::make_unique<MtZdoSyncGeneralResponse>();
+			auto retval1 = std::make_unique<SyncGeneralResponse>();
 			if(retval1->create(data) == true)
 			{
 				retVal = std::move(retval1);
@@ -268,6 +274,28 @@ std::unique_ptr<BaseObject> Factory::createMtZdoResponse(const MtZdoCommandsEnum
 		case ZDO_USER_DESC_RSP:
 		case ZDO_USER_DESC_CONF:
 		case ZDO_SERVER_DISC_RSP:
+		{
+			break;
+		}
+	}
+	return retVal;
+}
+
+std::unique_ptr<BaseObject> Factory::createMtAfResponse(const MtAfCommandsEnum command, const std::vector<uint8_t>& data)
+{
+	auto retVal = std::unique_ptr<BaseObject>{};
+	switch(command)
+	{
+		case AF_REGISTER:
+		{
+			auto retval1 = std::make_unique<SyncGeneralResponse>();
+			if(retval1->create(data) == true)
+			{
+				retVal = std::move(retval1);
+			}
+			break;
+		}
+		case AF_DATA_REQUEST:
 		{
 			break;
 		}

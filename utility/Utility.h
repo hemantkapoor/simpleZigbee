@@ -31,6 +31,7 @@ public:
 	static MessageDataType constructMessage(uint8_t cmd0, uint8_t cmd1, const std::vector<uint8_t>& data = std::vector<uint8_t>{});
 	static uint16_t getSyncyResponseCommand(uint8_t cmd0, uint8_t cmd1);
 	static uint16_t getAsyncyResponseCommand(uint8_t cmd0, uint8_t cmd1);
+	static std::vector<uint8_t> getBigEndian(uint16_t data);
 };
 
 };//End of namespace
