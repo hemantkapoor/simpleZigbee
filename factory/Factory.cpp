@@ -13,6 +13,7 @@
 #include "../object/mtZdo/sync/MtZdoStartupFromAppResponse.h"
 #include "../object/mtZdo/async/MtZdoAsyncNodeDescResponse.h"
 #include "../object/mtZdo/async/MtZdoAsyncActiveEPResponse.h"
+#include "../object/mtZdo/async/MtZdoAsyncEndDeviceAnnceInd.h"
 #include "Factory.h"
 
 using namespace SimpleZigbeeName;
@@ -248,6 +249,16 @@ std::unique_ptr<BaseObject> Factory::createMtZdoResponse(const MtZdoCommandsEnum
 			auto retval1 = std::make_unique<MtZdoAsyncActiveEPResponse>();
 			retval1->create(data);
 			retVal = std::move(retval1);
+			break;
+		}
+
+		case ZDO_END_DEVICE_ANNCE_IND:
+		{
+			auto retval1 = std::make_unique<MtZdoAsyncEndDeviceAnnceInd>();
+			if(retval1->create(data) == true)
+			{
+				retVal = std::move(retval1);
+			}
 			break;
 		}
 
