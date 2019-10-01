@@ -5,6 +5,7 @@
  *      Author: hemant
  */
 #include <functional>
+#include "../../simpleDebug/SimpleDebug.h"
 #include "../object/BaseObject.h"
 #include "../utility/Utility.h"
 #include "../observer/Observer.h"
@@ -36,8 +37,8 @@ void DeviceManager::start(std::shared_ptr<Observer> observer)
 }
 
 void DeviceManager::handleNewDevice(std::unique_ptr<BaseObject>)
-//void DeviceManager::handleNewDevice(int)
 {
+	SimpleDebugName::SimpleDebug::instance()->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Callback working\r\n");
 }
 DeviceManager::DeviceManager()
 {
