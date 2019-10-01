@@ -110,8 +110,6 @@ namespace SimpleZigbeeName
 		DeviceStateEnum getDeviceState();
 		DevReturnType getDeviceInfo();
 		bool startCoordinator();
-		bool getNodeDescription(uint16_t destinationAddress,uint16_t networkAddress);
-		std::pair<bool,std::vector<uint8_t>> getActiveEndPoints(uint16_t destinationAddress,uint16_t networkAddress);
 		bool setActiveEndPoint(const AddEndPointStruct& ep);
 
 	};

@@ -36,9 +36,10 @@ void DeviceManager::start(std::shared_ptr<Observer> observer)
 	m_observer->subscribeAsynchCommand(commandToregister,callbackNewDevice);
 }
 
-void DeviceManager::handleNewDevice(std::unique_ptr<BaseObject>)
+void DeviceManager::handleNewDevice(std::unique_ptr<BaseObject> obj)
 {
 	SimpleDebugName::SimpleDebug::instance()->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Callback working\r\n");
+	obj->print();
 }
 DeviceManager::DeviceManager()
 {

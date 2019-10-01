@@ -12,6 +12,7 @@
 #include "../object/BaseObject.h"
 #include "../object/sys/sync/SysOsalNvReadResponse.h"
 #include "../object/mtZdo/async/MtZdoAsyncActiveEPResponse.h"
+#include "../object/mtZdo/async/MtZdoAsyncNodeDescResponse.h"
 #include "../utility/Utility.h"
 #include "../deviceManager/DeviceManager.h"
 #include "Manager.h"
@@ -109,19 +110,19 @@ bool ZigbeeManager::initialise()
 	}
 
 	//Not sure what we are writting but here goes
-	auto dataTowrite = Utility::constructMessage(SYNC_SYS_COMMAND0, SYS_OSAL_NV_WRITE, MessageDataType{0x84, 0x00, 0x00, 0x04, 0x00, 0x08, 0x00, 0x00});
-	m_comms->transmitData(dataTowrite);
+	//auto dataTowrite = Utility::constructMessage(SYNC_SYS_COMMAND0, SYS_OSAL_NV_WRITE, MessageDataType{0x84, 0x00, 0x00, 0x04, 0x00, 0x08, 0x00, 0x00});
+	//m_comms->transmitData(dataTowrite);
 	m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Device started as Coordinator\r\n");
 	m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Getting Node Description\r\n");
-	if(getNodeDescription(0,0) == false)
+	auto nodeDescObj = Utility::getNodeDescription(0,0,m_comms,m_observer);
+	if(!nodeDescObj)
 	{
 		m_debug->log(SimpleDebugName::CRITICAL_ERROR, std::string(__PRETTY_FUNCTION__) + " : Cannot Get Node description\r\n");
 		return false;
 
 	}
-	auto activeEndPoint = getActiveEndPoints(0,0);
-	//bool endPointResult;
-	//std::vector<uint8_t> endpoints;
+	//auto activeEndPoint = getActiveEndPoints(0,0);
+	auto activeEndPoint = Utility::getActiveEndPoints(0,0,m_comms,m_observer);
 	auto [endPointResult,endpoints] = activeEndPoint;
 	if(endPointResult == false)
 	{
@@ -130,7 +131,7 @@ bool ZigbeeManager::initialise()
 	}
 	else
 	{
-		//Check if end points are present or now
+		//Check if end points are present or not
 		if(endpoints.empty())
 		{
 			m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : No end point found. Adding Now\r\n");
@@ -174,7 +175,7 @@ std::vector<uint8_t> ZigbeeManager::readOsalNvm(uint16_t id, uint8_t offset)
 	}
 	respObject->print();
 	//Convert to Read NVM Object
-	auto readNvmObj = SimpleSerialName::Utility::dynamicConvert<BaseObject,SysOsalNvReadResponse>(std::move(respObject));
+	auto readNvmObj = Utility::dynamicConvert<BaseObject,SysOsalNvReadResponse>(std::move(respObject));
 	if(readNvmObj)
 	{
 		retData = readNvmObj->data();
@@ -224,7 +225,7 @@ DevReturnType ZigbeeManager::getDeviceInfo()
 	}
 	respObject->print();
 
-	auto getDevInfoObj = SimpleSerialName::Utility::dynamicConvert<BaseObject,MtUtilGetDeviceInfoResponse>(std::move(respObject));
+	auto getDevInfoObj = Utility::dynamicConvert<BaseObject,MtUtilGetDeviceInfoResponse>(std::move(respObject));
 	if(getDevInfoObj)
 	{
 		return std::make_pair(true,getDevInfoObj->getResult());
@@ -276,89 +277,6 @@ bool ZigbeeManager::startCoordinator()
 	return true;
 }
 
-bool ZigbeeManager::getNodeDescription(uint16_t destinationAddress,uint16_t networkAddress)
-{
-	auto responseCommandExpected = Utility::getSyncyResponseCommand(SYNC_MT_ZDO_COMMAND0,ZDO_NODE_DESC_REQ);
-	m_observer->requestSyncResponse(responseCommandExpected);
-
-	auto asyncResponseExpected = Utility::getAsyncyResponseCommand(SYNC_MT_ZDO_COMMAND0,ZDO_NODE_DESC_REQ);
-	m_observer->requestSyncResponse(asyncResponseExpected);
-
-	auto dataTosend =  Utility::constructMessage(SYNC_MT_ZDO_COMMAND0,ZDO_NODE_DESC_REQ,
-			MessageDataType{(uint8_t)(destinationAddress & 0xFF), (uint8_t)((destinationAddress & 0xFF00) >> 8),
-			(uint8_t)(networkAddress & 0xFF), (uint8_t)((networkAddress & 0xFF00) >> 8)
-			});
-	m_comms->transmitData(dataTosend);
-	auto respObject = m_observer->getSyncResponse(responseCommandExpected,std::chrono::seconds(1));
-	if(!respObject)
-	{
-		//Remove and return
-		m_debug->log(SimpleDebugName::CRITICAL_WARNING, std::string(__PRETTY_FUNCTION__) + " : No acknowledgement for Node Description\r\n");
-		m_observer->removeRequestSyncResponse(responseCommandExpected);
-		return false;
-	}
-	respObject->print();
-
-	auto asyncrespObject = m_observer->getSyncResponse(asyncResponseExpected,std::chrono::seconds(1));
-	if(!asyncrespObject)
-	{
-		//Remove and return
-		m_debug->log(SimpleDebugName::CRITICAL_WARNING, std::string(__PRETTY_FUNCTION__) + " : No data received for Node Description\r\n");
-		m_observer->removeRequestSyncResponse(asyncResponseExpected);
-		return false;
-	}
-	asyncrespObject->print();
-	return true;
-}
-
-std::pair<bool,std::vector<uint8_t>> ZigbeeManager::getActiveEndPoints(uint16_t destinationAddress,uint16_t networkAddress)
-{
-	std::vector<uint8_t> retVector{};
-	auto responseCommandExpected = Utility::getSyncyResponseCommand(SYNC_MT_ZDO_COMMAND0,ZDO_ACTIVE_EP_REQ);
-	m_observer->requestSyncResponse(responseCommandExpected);
-
-	auto asyncResponseExpected = Utility::getAsyncyResponseCommand(SYNC_MT_ZDO_COMMAND0,ZDO_ACTIVE_EP_REQ);
-	m_observer->requestSyncResponse(asyncResponseExpected);
-
-	auto dataTosend =  Utility::constructMessage(SYNC_MT_ZDO_COMMAND0,ZDO_ACTIVE_EP_REQ,
-			MessageDataType{(uint8_t)(destinationAddress & 0xFF), (uint8_t)((destinationAddress & 0xFF00) >> 8),
-			(uint8_t)(networkAddress & 0xFF), (uint8_t)((networkAddress & 0xFF00) >> 8)
-			});
-	m_comms->transmitData(dataTosend);
-	auto respObject = m_observer->getSyncResponse(responseCommandExpected,std::chrono::seconds(1));
-	if(!respObject)
-	{
-		//Remove and return
-		m_debug->log(SimpleDebugName::CRITICAL_WARNING, std::string(__PRETTY_FUNCTION__) + " : No acknowledgement for Active End Point\r\n");
-		m_observer->removeRequestSyncResponse(responseCommandExpected);
-		return std::make_pair(false,retVector);
-	}
-	respObject->print();
-
-	auto asyncrespObject = m_observer->getSyncResponse(asyncResponseExpected,std::chrono::seconds(1));
-	if(!asyncrespObject)
-	{
-		//Remove and return
-		m_debug->log(SimpleDebugName::CRITICAL_WARNING, std::string(__PRETTY_FUNCTION__) + " : No data received for Active End Point\r\n");
-		m_observer->removeRequestSyncResponse(asyncResponseExpected);
-		return std::make_pair(false,retVector);
-	}
-	asyncrespObject->print();
-
-	//Convert to get Active End points Object
-	auto getActiveEndPoints = SimpleSerialName::Utility::dynamicConvert<BaseObject,MtZdoAsyncActiveEPResponse>(std::move(asyncrespObject));
-	if(getActiveEndPoints)
-	{
-		retVector = getActiveEndPoints->getEndPoints();
-		return std::make_pair(true,retVector);
-	}
-	else
-	{
-		m_debug->log(SimpleDebugName::CRITICAL_WARNING, std::string(__PRETTY_FUNCTION__) + " : Error converting to dynamic object\r\n");
-	}
-
-	return std::make_pair(false,retVector);
-}
 
 bool ZigbeeManager::setActiveEndPoint(const AddEndPointStruct& ep)
 {
