@@ -30,7 +30,9 @@ void Observer::handleReceivedMessage(std::unique_ptr<BaseObject> messageObject)
 	}
 	auto command = messageObject->getCommand();
 	{
-		std::lock_guard<std::mutex> guard(m_syncRequestResponseListMutex);
+		{
+			std::lock_guard<std::mutex> guard(m_syncRequestResponseListMutex);
+		}
 		//Check if we have are waiting for this message in a synchronous event
 		auto listIter = std::find(m_syncRequestResponseList.begin(), m_syncRequestResponseList.end(), command);
 		if(listIter != m_syncRequestResponseList.end())
@@ -73,18 +75,22 @@ std::unique_ptr<BaseObject> Observer::getSyncResponse(uint16_t command,const std
 {
 	m_dataAvailable = false;
 	std::unique_lock<std::mutex> lck(m_condVarMutex);
-	m_condVar.wait_for(lck, duration, [&](){ return m_dataAvailable.load(); });
-	std::lock_guard<std::mutex> guard(m_syncResponseMapMutex);
-	auto mapIter = m_syncResponseMap.find(command);
-	if(mapIter == m_syncResponseMap.end())
+	if(m_condVar.wait_for(lck, duration, [&](){ return m_dataAvailable.load(); }))
 	{
-		return std::unique_ptr<BaseObject>{};
+		std::lock_guard<std::mutex> guard(m_syncResponseMapMutex);
+		auto mapIter = m_syncResponseMap.find(command);
+		if(mapIter == m_syncResponseMap.end())
+		{
+			return std::unique_ptr<BaseObject>{};
+		}
+		auto retval =  std::move(mapIter->second);
+		//Lets remove the entry from map and list
+		m_syncResponseMap.erase(mapIter);
+		removeRequestSyncResponse(command);
+		return retval;
 	}
-	auto retval =  std::move(mapIter->second);
-	//Lets remove the entry from map and list
-	m_syncResponseMap.erase(mapIter);
-	removeRequestSyncResponse(command);
-	return retval;
+	return std::unique_ptr<BaseObject>();
+
 }
 void Observer::removeRequestSyncResponse(uint16_t command)
 {

@@ -195,7 +195,6 @@ std::unique_ptr<MtZdoAsyncSimpleDescResponse> Utility::getSimpleDescription(uint
 		observer->removeRequestSyncResponse(asyncResponseExpected);
 		return retVal;
 	}
-	asyncrespObject->print();
 
 	auto getAsyncSimpleDescObj = dynamicConvert<BaseObject,MtZdoAsyncSimpleDescResponse>(std::move(asyncrespObject));
 	if(getAsyncSimpleDescObj)

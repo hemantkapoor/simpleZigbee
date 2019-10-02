@@ -18,7 +18,7 @@ namespace SimpleZigbeeName
 
 struct __attribute__ ((packed))   SimpleDescpData1Struct
 {
-	uint8_t SrcAddr;
+	uint16_t SrcAddr;
 	DeviceStatusEnum Status;
 	uint16_t NwkAddr;
 	uint8_t Len;
@@ -33,9 +33,9 @@ struct __attribute__ ((packed))   SimpleDescpData1Struct
 struct SimpleDescpStruct
 {
 	SimpleDescpData1Struct data;
-	std::vector<uint8_t> InClusterList;
+	std::vector<uint16_t> InClusterList;
 	uint8_t NumOutClusters;
-	std::vector<uint8_t> OutClusterList;
+	std::vector<uint16_t> OutClusterList;
 };
 
 

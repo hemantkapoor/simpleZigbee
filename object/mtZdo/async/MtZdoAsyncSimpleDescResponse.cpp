@@ -29,15 +29,24 @@ bool MtZdoAsyncSimpleDescResponse::create(const std::vector<uint8_t>& data)
 	auto currentIndex = DATA_INDEX + sizeof(m_data.data);
 	for(auto index=0;index<m_data.data.NumInClusters;++index)
 	{
-		m_data.InClusterList.push_back(data[currentIndex]);
+		//m_data.InClusterList.push_back(data[currentIndex]);
+		//++currentIndex;
+		uint16_t clusterId = data[currentIndex];
 		++currentIndex;
+		clusterId = clusterId | ((uint16_t)data[currentIndex]<<8);
+		++currentIndex;
+		m_data.InClusterList.push_back(clusterId);
+
 	}
 	m_data.NumOutClusters = data[currentIndex];
 	++currentIndex;
 	for(auto index=0;index<m_data.NumOutClusters;++index)
 	{
-		m_data.OutClusterList.push_back(data[currentIndex]);
+		uint16_t clusterId = data[currentIndex];
 		++currentIndex;
+		clusterId = clusterId | ((uint16_t)data[currentIndex]<<8);
+		++currentIndex;
+		m_data.OutClusterList.push_back(clusterId);
 	}
 	m_dataPopulated = true;
 	return true;
@@ -52,21 +61,42 @@ void MtZdoAsyncSimpleDescResponse::print()
 		return;
 	}
 
-	m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " List of Input Clusters are \r\n");
-	std::stringstream outputSting;
-	for(auto cluster : m_data.InClusterList)
+	if(m_data.data.NumInClusters == 0)
 	{
-		outputSting<< "0x" << std::hex << (int)cluster << ", ";
+		m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " No Input Clusters present \r\n");
+	}
+	else
+	{
+		std::stringstream outputSting;
+		outputSting << std::string(__PRETTY_FUNCTION__) << " List of Input Clusters for end point 0x" <<std::hex << (int)m_data.data.Endpoint << std::endl;
+		m_debug->log(SimpleDebugName::LOG, outputSting);
+		outputSting.str(std::string());
+
+		for(auto cluster : m_data.InClusterList)
+		{
+			outputSting<< "0x" << std::hex << (int)cluster << ", ";
+		}
+		m_debug->log(SimpleDebugName::LOG, outputSting);
 	}
 
-	m_debug->log(SimpleDebugName::LOG, "\r\n" + std::string(__PRETTY_FUNCTION__) + " List of Output Clusters are \r\n");
-	std::stringstream outputSting1;
-	for(auto cluster : m_data.OutClusterList)
+	if(m_data.NumOutClusters == 0)
 	{
-		outputSting1<< "0x" << std::hex << (int)cluster << ", ";
+		m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " No Output Clusters present \r\n");
 	}
+	else
+	{
 
-	m_debug->log(SimpleDebugName::LOG, outputSting1);
+		std::stringstream outputSting1;
+		outputSting1 << std::string(__PRETTY_FUNCTION__) << " List of Output Clusters for end point 0x" <<std::hex << (int)m_data.data.Endpoint << std::endl;
+		m_debug->log(SimpleDebugName::LOG, outputSting1);
+		outputSting1.str(std::string());
+
+		for(auto cluster : m_data.OutClusterList)
+		{
+			outputSting1<< "0x" << std::hex << (int)cluster << ", ";
+		}
+		m_debug->log(SimpleDebugName::LOG, outputSting1);
+	}
 }
 
 } /* namespace SimpleZigbeeName */

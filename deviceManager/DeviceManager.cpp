@@ -77,7 +77,7 @@ void DeviceManager::handleNewDevice(std::unique_ptr<BaseObject> obj)
 	std::stringstream outputSting;
 	for(auto endPoint : activeEndPoint)
 	{
-		outputSting << "\r\nSimple Descriptor for Endpoint 0x" << std::hex << endPoint <<" are \r\n";
+		outputSting << "\r\nSimple Descriptor for Endpoint 0x" << std::hex << (int)endPoint <<" are \r\n";
 		debug->log(SimpleDebugName::LOG, outputSting);
 		outputSting.str(std::string());
 		//Also lets get Simple Descriptor for each end points and print it
