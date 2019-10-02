@@ -40,6 +40,7 @@ public:
 	virtual bool create(const std::vector<uint8_t>&) final;
 	virtual void print() final;
 	virtual uint16_t getCommand() final { return m_command; }
+	EndDeviceAnnStruct getData() const { return m_data; }
 
 private:
 	uint16_t m_command;

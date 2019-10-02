@@ -9,6 +9,11 @@
 
 #include<memory>
 
+namespace SimpleSerialName
+{
+	class Comms;
+};
+
 
 namespace SimpleZigbeeName
 {
@@ -26,7 +31,7 @@ public:
 	DeviceManager& operator=(DeviceManager &&other) = delete;
 
 	static DeviceManager* instance();
-	void start(std::shared_ptr<Observer>);
+	void start(std::shared_ptr<Observer>, std::shared_ptr<SimpleSerialName::Comms> comms);
 
 	void handleNewDevice(std::unique_ptr<BaseObject>);
 	//void handleNewDevice(int);
@@ -35,6 +40,7 @@ private:
 
 	static DeviceManager* m_instance;
 	std::shared_ptr<Observer> m_observer;
+	std::shared_ptr<SimpleSerialName::Comms> m_comms;
 };
 
 } /* namespace SimpleZigbeeName */

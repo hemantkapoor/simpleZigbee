@@ -12,6 +12,7 @@
 
 #include "../object/mtZdo/async/MtZdoAsyncNodeDescResponse.h"
 #include "../object/mtZdo/async/MtZdoAsyncActiveEPResponse.h"
+#include "../object/mtZdo/async/MtZdoAsyncSimpleDescResponse.h"
 #include "Utility.h"
 
 using namespace SimpleZigbeeName;
@@ -157,4 +158,52 @@ std::pair<bool,std::vector<uint8_t>> Utility::getActiveEndPoints(uint16_t destin
 		debug->log(SimpleDebugName::CRITICAL_WARNING, std::string(__PRETTY_FUNCTION__) + " : Error converting to dynamic object\r\n");
 	}
 	return std::make_pair(false,retVector);
+}
+
+
+std::unique_ptr<MtZdoAsyncSimpleDescResponse> Utility::getSimpleDescription(uint16_t destinationAddress,uint16_t networkAddress,uint8_t endPoint, std::shared_ptr<SimpleSerialName::Comms> comms,std::shared_ptr<Observer> observer)
+{
+	auto retVal = std::make_unique<MtZdoAsyncSimpleDescResponse>();
+	auto responseCommandExpected = getSyncyResponseCommand(SYNC_MT_ZDO_COMMAND0,ZDO_SIMPLE_DESC_REQ);
+	observer->requestSyncResponse(responseCommandExpected);
+
+	auto asyncResponseExpected = Utility::getAsyncyResponseCommand(SYNC_MT_ZDO_COMMAND0,ZDO_SIMPLE_DESC_REQ);
+	observer->requestSyncResponse(asyncResponseExpected);
+
+	auto dataTosend =  Utility::constructMessage(SYNC_MT_ZDO_COMMAND0,ZDO_SIMPLE_DESC_REQ,
+			MessageDataType{(uint8_t)(destinationAddress & 0xFF), (uint8_t)((destinationAddress & 0xFF00) >> 8),
+			(uint8_t)(networkAddress & 0xFF), (uint8_t)((networkAddress & 0xFF00) >> 8), endPoint
+			});
+	comms->transmitData(dataTosend);
+	auto respObject = observer->getSyncResponse(responseCommandExpected,std::chrono::seconds(1));
+
+	auto debug = SimpleDebugName::SimpleDebug::instance();
+	if(!respObject)
+	{
+		//Remove and return
+		debug->log(SimpleDebugName::CRITICAL_WARNING, std::string(__PRETTY_FUNCTION__) + " : No acknowledgement for Simple Description\r\n");
+		observer->removeRequestSyncResponse(responseCommandExpected);
+		return retVal;
+	}
+	respObject->print();
+
+	auto asyncrespObject = observer->getSyncResponse(asyncResponseExpected,std::chrono::seconds(1));
+	if(!asyncrespObject)
+	{
+		//Remove and return
+		debug->log(SimpleDebugName::CRITICAL_WARNING, std::string(__PRETTY_FUNCTION__) + " : No data received for Simple Description\r\n");
+		observer->removeRequestSyncResponse(asyncResponseExpected);
+		return retVal;
+	}
+	asyncrespObject->print();
+
+	auto getAsyncSimpleDescObj = dynamicConvert<BaseObject,MtZdoAsyncSimpleDescResponse>(std::move(asyncrespObject));
+	if(getAsyncSimpleDescObj)
+	{
+		retVal = std::move(getAsyncSimpleDescObj);
+	}
+
+
+	return retVal;
+
 }

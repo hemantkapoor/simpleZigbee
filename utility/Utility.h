@@ -33,6 +33,7 @@ const uint8_t  SYNC_RESPONSE_CMD1_MASK = 0x80;
 
 class Observer;
 class MtZdoAsyncNodeDescResponse;
+class MtZdoAsyncSimpleDescResponse;
 class Utility
 {
 public:
@@ -46,8 +47,6 @@ public:
 	static uint16_t getSyncyResponseCommand(uint8_t cmd0, uint8_t cmd1);
 	static uint16_t getAsyncyResponseCommand(uint8_t cmd0, uint8_t cmd1);
 	static std::vector<uint8_t> getBigEndian(uint16_t data);
-	static std::unique_ptr<MtZdoAsyncNodeDescResponse> getNodeDescription(uint16_t destinationAddress,uint16_t networkAddress,std::shared_ptr<SimpleSerialName::Comms>,std::shared_ptr<Observer>);
-	static std::pair<bool,std::vector<uint8_t>> getActiveEndPoints(uint16_t destinationAddress,uint16_t networkAddress,std::shared_ptr<SimpleSerialName::Comms>,std::shared_ptr<Observer>);
 
 	template<typename baseType, typename derivedType>
 	static std::unique_ptr<derivedType> dynamicConvert(std::unique_ptr<baseType> baseObj)
@@ -61,6 +60,14 @@ public:
 		}
 		return derivedPointer;
 	}
+
+
+	//General Helper functions
+	static std::unique_ptr<MtZdoAsyncNodeDescResponse> getNodeDescription(uint16_t destinationAddress,uint16_t networkAddress,std::shared_ptr<SimpleSerialName::Comms>,std::shared_ptr<Observer>);
+	static std::pair<bool,std::vector<uint8_t>> getActiveEndPoints(uint16_t destinationAddress,uint16_t networkAddress,std::shared_ptr<SimpleSerialName::Comms>,std::shared_ptr<Observer>);
+	static std::unique_ptr<MtZdoAsyncSimpleDescResponse> getSimpleDescription(uint16_t destinationAddress,uint16_t networkAddress,uint8_t endPoint, std::shared_ptr<SimpleSerialName::Comms>,std::shared_ptr<Observer>);
+
+
 };
 
 };//End of namespace

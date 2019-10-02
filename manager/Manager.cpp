@@ -30,7 +30,7 @@ ZigbeeManager::ZigbeeManager(std::shared_ptr<SimpleSerialName::Comms> comms):m_c
 bool ZigbeeManager::initialise()
 {
 	auto devMan = DeviceManager::instance();
-	devMan->start(m_observer);
+	devMan->start(m_observer,m_comms);
 	//First command is get the version
 	m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Requesting Firmware Version\r\n");
 	auto getVersion =  Utility::constructMessage(SYNC_SYS_COMMAND0, SYS_VERSION);
