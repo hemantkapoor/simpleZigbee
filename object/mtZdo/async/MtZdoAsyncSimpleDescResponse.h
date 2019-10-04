@@ -47,6 +47,8 @@ public:
 	virtual bool create(const std::vector<uint8_t>&) final;
 	virtual void print() final;
 	virtual uint16_t getCommand() final { return m_command; }
+	std::vector<uint16_t> getInputClusterList() const { return m_data.InClusterList; }
+	std::vector<uint16_t> getOutputClusterList() const { return m_data.OutClusterList; }
 
 private:
 	uint16_t m_command;

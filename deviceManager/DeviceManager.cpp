@@ -86,6 +86,8 @@ void DeviceManager::handleNewDevice(std::unique_ptr<BaseObject> obj)
 			if(simpleDescObj)
 			{
 				simpleDescObj->print();
+
+				//Let us get details for every input cluster.
 			}
 			else
 			{
