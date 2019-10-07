@@ -171,6 +171,18 @@ enum DeviceTypeEnum : uint8_t
 	DEVICE_ENDPOINT
 };
 
+struct __attribute__ ((packed))  MtAfDataRequestCommandStruct
+{
+uint16_t DstAddr;
+uint8_t DstEndpoint;
+uint8_t SrcEndpoint;
+uint16_t ClusterId;
+uint8_t TransId;
+uint8_t Options;
+uint8_t Radius;
+uint8_t Len;
+};
+
 class BaseObject
 {
 public:

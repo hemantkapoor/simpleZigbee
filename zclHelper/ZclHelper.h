@@ -50,6 +50,13 @@ enum AttributeReportingStatus : uint8_t
 	AttributeReportingComplete
 };
 
+enum ClusterIdEnum : uint16_t
+{
+	Basic_Cluster = 0x0000,
+	Power_Configuration_Cluster = 0x0001,
+	Device_Temperature_Cluster = 0x0002,
+	Identify_Cluster = 0x0003
+};
 enum ZCLCommandFramesIdEnum : uint8_t
 {
 	ReadAttributes = 0x00,

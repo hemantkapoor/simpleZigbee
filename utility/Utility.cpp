@@ -136,7 +136,7 @@ std::pair<bool,std::vector<uint8_t>> Utility::getActiveEndPoints(uint16_t destin
 	}
 	respObject->print();
 
-	auto asyncrespObject = observer->getSyncResponse(asyncResponseExpected,std::chrono::seconds(1));
+	auto asyncrespObject = observer->getSyncResponse(asyncResponseExpected,std::chrono::seconds(5));
 	if(!asyncrespObject)
 	{
 		//Remove and return
@@ -205,4 +205,17 @@ std::unique_ptr<MtZdoAsyncSimpleDescResponse> Utility::getSimpleDescription(uint
 
 	return retVal;
 
+}
+
+
+std::vector<uint8_t> Utility::convertData(const std::vector<uint16_t>& inputVector)
+{
+	std::vector<uint8_t> returnValue;
+	for(auto data : inputVector)
+	{
+		std::vector<uint8_t> retVal{(uint8_t)(data & 0xFF), (uint8_t)((data & 0xFF00) >> 8)};
+		returnValue.push_back((uint8_t)(data & 0xFF));
+		returnValue.push_back((uint8_t)((data & 0xFF00) >> 8));
+	}
+	return returnValue;
 }

@@ -20,6 +20,12 @@ namespace SimpleZigbeeName
 
 class Observer;
 
+using ListOfClusterType = std::vector<uint16_t>;
+
+using ListOfInputandOutClusterType = std::pair<ListOfClusterType,ListOfClusterType>;
+
+using DeviceEndPointsAndClusterType = std::map<uint8_t,ListOfInputandOutClusterType>;
+
 class DeviceManager
 {
 public:

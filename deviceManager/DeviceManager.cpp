@@ -6,6 +6,12 @@
  */
 #include <sstream>
 #include <functional>
+#include <algorithm>
+#include <variant>
+#include <string>
+#include <cassert>
+#include <memory>
+#include <vector>
 #include "../../simpleDebug/SimpleDebug.h"
 #include "../object/BaseObject.h"
 #include "../object/mtZdo/async/MtZdoAsyncEndDeviceAnnceInd.h"
@@ -14,6 +20,8 @@
 #include "../object/mtZdo/async/MtZdoAsyncSimpleDescResponse.h"
 #include "../utility/Utility.h"
 #include "../observer/Observer.h"
+#include "../zclHelper/ZclHelper.h"
+#include "../zclHelper/BasicCluster.h"
 #include "DeviceManager.h"
 
 namespace SimpleZigbeeName {
@@ -75,11 +83,14 @@ void DeviceManager::handleNewDevice(std::unique_ptr<BaseObject> obj)
 	}
 	//For now just print
 	std::stringstream outputSting;
+	DeviceEndPointsAndClusterType deviceEndPointAndClusters;
 	for(auto endPoint : activeEndPoint)
 	{
 		outputSting << "\r\nSimple Descriptor for Endpoint 0x" << std::hex << (int)endPoint <<" are \r\n";
 		debug->log(SimpleDebugName::LOG, outputSting);
 		outputSting.str(std::string());
+		ListOfClusterType inputClusters;
+		ListOfClusterType outputClusters;
 		//Also lets get Simple Descriptor for each end points and print it
 		{
 			auto simpleDescObj = Utility::getSimpleDescription(data.SrcAddr,data.NwkAddr,endPoint,m_comms,m_observer);
@@ -88,6 +99,8 @@ void DeviceManager::handleNewDevice(std::unique_ptr<BaseObject> obj)
 				simpleDescObj->print();
 
 				//Let us get details for every input cluster.
+				inputClusters = simpleDescObj->getInputClusterList();
+				outputClusters = simpleDescObj->getOutputClusterList();
 			}
 			else
 			{
@@ -97,6 +110,54 @@ void DeviceManager::handleNewDevice(std::unique_ptr<BaseObject> obj)
 				outputSting.str(std::string());
 			}
 		}
+		deviceEndPointAndClusters[endPoint] = std::make_pair(inputClusters,outputClusters);
+	}
+
+	//Lets see if we can find any Basic Clusters
+	bool found(false);
+	uint8_t basicClusterEndpoint(0);
+	for(auto elements : deviceEndPointAndClusters)
+	{
+		auto [currentEndpoint,currentClusters] = elements;
+		auto [inputClusters, outputClusters] = currentClusters;
+		if(std::find(inputClusters.begin(), inputClusters.end(), Basic_Cluster)!= inputClusters.end())
+		{
+			found = true;
+			basicClusterEndpoint = currentEndpoint;
+			break;
+		}
+		if(std::find(outputClusters.begin(), outputClusters.end(), Basic_Cluster)!= outputClusters.end())
+		{
+			found = true;
+			break;
+		}
+	}
+
+	if(found == false)
+	{
+		debug->log(SimpleDebugName::ERROR, std::string(__PRETTY_FUNCTION__) + " : Failed to find Basic Cluster for this device\r\n");
+		return;
+	}
+	//We know where the basic cluster is... Now
+	auto destinationAddress = data.SrcAddr;
+	auto currentBasicClusterObj = std::make_unique<BasicCluster>(m_observer, m_comms, destinationAddress, basicClusterEndpoint);
+	auto retVal = currentBasicClusterObj->getAttributes(std::vector<uint16_t>{(uint16_t)MANUFACTURERNAME,MODELIDENTIFIER});
+	if(retVal.empty())
+	{
+		debug->log(SimpleDebugName::ERROR, std::string(__PRETTY_FUNCTION__) + " : Failed to get device Manufacturer information\r\n");
+		return;
+	}
+	try
+	{
+		auto manufacturerName = std::get<std::string>(retVal[0]);
+		outputSting.str(std::string());
+		outputSting <<  std::string(__PRETTY_FUNCTION__) + " : Manufacturer = " << manufacturerName << std::endl;
+		debug->log(SimpleDebugName::LOG, outputSting);
+	}
+	catch (const std::bad_variant_access&)
+	{
+		debug->log(SimpleDebugName::ERROR, std::string(__PRETTY_FUNCTION__) + " : Failed to get Manufacturer Details\r\n");
+		return;
 	}
 
 }

@@ -100,8 +100,8 @@ bool ZigbeeManager::initialise()
 	}
 
 	//HK Not sure what this will do
-	//auto getPreCnfgKey =  Utility::constructMessage(SYNC_MT_SAPI_COMMAND0, MT_SAPI_ZB_READ_CONFIGURATION, MessageDataType{0x62});
-	//m_comms->transmitData(getPreCnfgKey);
+	auto getPreCnfgKey =  Utility::constructMessage(SYNC_MT_SAPI_COMMAND0, MT_SAPI_ZB_READ_CONFIGURATION, MessageDataType{0x62});
+	m_comms->transmitData(getPreCnfgKey);
 	m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Starting Device as Coordinator\r\n");
 	if(startCoordinator() == false)
 	{
