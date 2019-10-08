@@ -109,10 +109,17 @@ bool ZigbeeManager::initialise()
 		return false;
 	}
 
+	std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+
 	//Not sure what we are writting but here goes
-	//auto dataTowrite = Utility::constructMessage(SYNC_SYS_COMMAND0, SYS_OSAL_NV_WRITE, MessageDataType{0x84, 0x00, 0x00, 0x04, 0x00, 0x08, 0x00, 0x00});
-	//m_comms->transmitData(dataTowrite);
+	auto dataTowrite = Utility::constructMessage(SYNC_SYS_COMMAND0, SYS_OSAL_NV_WRITE, MessageDataType{0x84, 0x00, 0x00, 0x04, 0x00, 0x08, 0x00, 0x00});
+	m_comms->transmitData(dataTowrite);
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+
 	m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Device started as Coordinator\r\n");
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 	m_debug->log(SimpleDebugName::LOG, std::string(__PRETTY_FUNCTION__) + " : Getting Node Description\r\n");
 	auto nodeDescObj = Utility::getNodeDescription(0,0,m_comms,m_observer);
 	if(!nodeDescObj)
@@ -121,7 +128,8 @@ bool ZigbeeManager::initialise()
 		return false;
 
 	}
-	//auto activeEndPoint = getActiveEndPoints(0,0);
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 	auto activeEndPoint = Utility::getActiveEndPoints(0,0,m_comms,m_observer);
 	auto [endPointResult,endpoints] = activeEndPoint;
 	if(endPointResult == false)

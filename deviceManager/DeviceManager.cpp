@@ -12,6 +12,7 @@
 #include <cassert>
 #include <memory>
 #include <vector>
+#include <map>
 #include "../../simpleDebug/SimpleDebug.h"
 #include "../object/BaseObject.h"
 #include "../object/mtZdo/async/MtZdoAsyncEndDeviceAnnceInd.h"
@@ -140,26 +141,29 @@ void DeviceManager::handleNewDevice(std::unique_ptr<BaseObject> obj)
 	}
 	//We know where the basic cluster is... Now
 	auto destinationAddress = data.SrcAddr;
-	auto currentBasicClusterObj = std::make_unique<BasicCluster>(m_observer, m_comms, destinationAddress, basicClusterEndpoint);
-	auto retVal = currentBasicClusterObj->getAttributes(std::vector<uint16_t>{(uint16_t)MANUFACTURERNAME,MODELIDENTIFIER});
+	//auto currentBasicClusterObj = std::make_unique<BasicCluster>(m_observer, m_comms, destinationAddress, basicClusterEndpoint);
+	auto currentBasicClusterObj = BasicCluster(m_observer, m_comms, destinationAddress, basicClusterEndpoint);
+	auto retVal = currentBasicClusterObj.getAttributes(std::vector<uint16_t>{(uint16_t)MANUFACTURERNAME,MODELIDENTIFIER});
 	if(retVal.empty())
 	{
 		debug->log(SimpleDebugName::ERROR, std::string(__PRETTY_FUNCTION__) + " : Failed to get device Manufacturer information\r\n");
 		return;
 	}
-	try
+	if(retVal.find(MANUFACTURERNAME) != retVal.end())
 	{
-		auto manufacturerName = std::get<std::string>(retVal[0]);
-		outputSting.str(std::string());
-		outputSting <<  std::string(__PRETTY_FUNCTION__) + " : Manufacturer = " << manufacturerName << std::endl;
-		debug->log(SimpleDebugName::LOG, outputSting);
+		try
+		{
+			auto manufacturerName = std::get<std::string>(retVal[MANUFACTURERNAME]);
+			outputSting.str(std::string());
+			outputSting <<  std::string(__PRETTY_FUNCTION__) + " : Manufacturer = " << manufacturerName << std::endl;
+			debug->log(SimpleDebugName::LOG, outputSting);
+		}
+		catch (const std::bad_variant_access&)
+		{
+			debug->log(SimpleDebugName::ERROR, std::string(__PRETTY_FUNCTION__) + " : Failed to get Manufacturer Details\r\n");
+			return;
+		}
 	}
-	catch (const std::bad_variant_access&)
-	{
-		debug->log(SimpleDebugName::ERROR, std::string(__PRETTY_FUNCTION__) + " : Failed to get Manufacturer Details\r\n");
-		return;
-	}
-
 }
 DeviceManager::DeviceManager()
 {

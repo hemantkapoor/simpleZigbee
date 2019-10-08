@@ -15,6 +15,9 @@
 #include "../object/mtZdo/async/MtZdoAsyncActiveEPResponse.h"
 #include "../object/mtZdo/async/MtZdoAsyncEndDeviceAnnceInd.h"
 #include "../object/mtZdo/async/MtZdoAsyncSimpleDescResponse.h"
+#include "../object/mtZdo/async/MtZdoAsyncSrcRtgInd.h"
+#include "../object/mtAf/async/MtAfAsyncIncomingMessage.h"
+#include "../object/mtAf/async/MtAfAsyncDataConfirm.h"
 #include "Factory.h"
 
 using namespace SimpleZigbeeName;
@@ -253,6 +256,16 @@ std::unique_ptr<BaseObject> Factory::createMtZdoResponse(const MtZdoCommandsEnum
 			break;
 		}
 
+		case ZDO_SIMPLE_DESC_RSP:
+		{
+			auto retval1 = std::make_unique<MtZdoAsyncSimpleDescResponse>();
+			if(retval1->create(data) == true)
+			{
+				retVal = std::move(retval1);
+			}
+			break;
+		}
+
 		case ZDO_END_DEVICE_ANNCE_IND:
 		{
 			auto retval1 = std::make_unique<MtZdoAsyncEndDeviceAnnceInd>();
@@ -263,9 +276,9 @@ std::unique_ptr<BaseObject> Factory::createMtZdoResponse(const MtZdoCommandsEnum
 			break;
 		}
 
-		case ZDO_SIMPLE_DESC_RSP:
+		case ZDO_SRC_RTG_IND:
 		{
-			auto retval1 = std::make_unique<MtZdoAsyncSimpleDescResponse>();
+			auto retval1 = std::make_unique<MtZdoAsyncSrcRtgInd>();
 			if(retval1->create(data) == true)
 			{
 				retVal = std::move(retval1);
@@ -308,6 +321,7 @@ std::unique_ptr<BaseObject> Factory::createMtAfResponse(const MtAfCommandsEnum c
 	switch(command)
 	{
 		case AF_REGISTER:
+		case AF_DATA_REQUEST:
 		{
 			auto retval1 = std::make_unique<SyncGeneralResponse>();
 			if(retval1->create(data) == true)
@@ -316,8 +330,22 @@ std::unique_ptr<BaseObject> Factory::createMtAfResponse(const MtAfCommandsEnum c
 			}
 			break;
 		}
-		case AF_DATA_REQUEST:
+		case AF_DATA_CONFIRM:
 		{
+			auto retval1 = std::make_unique<MtAfAsyncDataConfirm>();
+			if(retval1->create(data) == true)
+			{
+				retVal = std::move(retval1);
+			}
+			break;
+		}
+		case AF_INCOMING_MSG:
+		{
+			auto retval1 = std::make_unique<MtAfAsyncIncomingMessage>();
+			if(retval1->create(data) == true)
+			{
+				retVal = std::move(retval1);
+			}
 			break;
 		}
 	}

@@ -37,8 +37,10 @@ void Observer::handleReceivedMessage(std::unique_ptr<BaseObject> messageObject)
 		auto listIter = std::find(m_syncRequestResponseList.begin(), m_syncRequestResponseList.end(), command);
 		if(listIter != m_syncRequestResponseList.end())
 		{
-			std::lock_guard<std::mutex> guard(m_syncResponseMapMutex);
-			m_syncResponseMap[command] = std::move(messageObject);
+			{
+				std::lock_guard<std::mutex> guard(m_syncResponseMapMutex);
+				m_syncResponseMap[command] = std::move(messageObject);
+			}
 			std::stringstream outputSting;
 			outputSting <<__PRETTY_FUNCTION__<< " : Added Command Id 0x"<< std::hex << int(command) << std::endl;
 			m_debug->log(SimpleDebugName::LOG, outputSting);
@@ -60,8 +62,10 @@ void Observer::handleReceivedMessage(std::unique_ptr<BaseObject> messageObject)
 		}
 	}
 	//We will add this to the list and notify our sleeping thread.
-	std::lock_guard<std::mutex> guard(m_receivedCommandObjectsMutex);
-	m_receivedCommandObjects.push_back(std::move(messageObject));
+	{
+		std::lock_guard<std::mutex> guard(m_receivedCommandObjectsMutex);
+		m_receivedCommandObjects.push_back(std::move(messageObject));
+	}
 	m_asynchronousDataAvailable = true;
 	m_asynchronousCondVar.notify_one();
 }
@@ -73,6 +77,20 @@ void Observer::requestSyncResponse(uint16_t command)
 }
 std::unique_ptr<BaseObject> Observer::getSyncResponse(uint16_t command,const std::chrono::seconds& duration)
 {
+	//First check if we have data already present
+	{
+		std::lock_guard<std::mutex> guard(m_syncResponseMapMutex);
+		auto mapIter = m_syncResponseMap.find(command);
+		if(mapIter != m_syncResponseMap.end())
+		{
+			auto retval =  std::move(mapIter->second);
+			//Lets remove the entry from map and list
+			m_syncResponseMap.erase(mapIter);
+			removeRequestSyncResponse(command);
+			return retval;
+		}
+	}
+	//If data not available then we wait
 	m_dataAvailable = false;
 	std::unique_lock<std::mutex> lck(m_condVarMutex);
 	if(m_condVar.wait_for(lck, duration, [&](){ return m_dataAvailable.load(); }))

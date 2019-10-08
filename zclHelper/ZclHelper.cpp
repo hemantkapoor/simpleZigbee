@@ -19,9 +19,9 @@ ZclHelper::ZclHelper()
 }
 
 
-ZclDataType ZclHelper::getZclData(ClisterLibraryDataTypesEnum dataType,uint8_t *data)
+uint32_t ZclHelper::getZclData(ClisterLibraryDataTypesEnum dataType,uint8_t *data, ZclDataType& retVal)
 {
-	ZclDataType retVal;
+	uint32_t returnLength(0);
 	switch(dataType)
 	{
 	//Lets only implement what we need now
@@ -30,14 +30,15 @@ ZclDataType ZclHelper::getZclData(ClisterLibraryDataTypesEnum dataType,uint8_t *
 
 		{
 			retVal = *data;
+			returnLength = 1;
 			break;
 		}
 		case ZCL_STRING:
 		{
 			//First data is length of the string
-			uint8_t stringLen = *data;
+			uint8_t returnLength = *data;
 			++data;
-			std::string val((char*)data,stringLen);
+			std::string val((char*)data,returnLength);
 			retVal = val;
 			break;
 		}
@@ -101,7 +102,7 @@ ZclDataType ZclHelper::getZclData(ClisterLibraryDataTypesEnum dataType,uint8_t *
 			break;
 		}
 	}
-	return retVal;
+	return returnLength;
 }
 
 

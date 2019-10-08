@@ -219,3 +219,35 @@ std::vector<uint8_t> Utility::convertData(const std::vector<uint16_t>& inputVect
 	}
 	return returnValue;
 }
+
+std::vector<uint16_t> Utility::convertData(const std::vector<uint8_t>& inputVector)
+{
+	std::vector<uint16_t> returnValue;
+	uint16_t value(0);
+	uint32_t count(0);
+	for(auto data : inputVector)
+	{
+		if(count == 0)
+		{
+			++count;
+			value = data;
+		}
+		else
+		{
+			count = 0;
+			value = value | (uint16_t(data) << 8);
+			returnValue.push_back(value);
+		}
+	}
+	return returnValue;
+}
+
+
+uint16_t Utility::convertData(const uint8_t* data)
+{
+	uint16_t value(0);
+	value = *data;
+	++data;
+	value = value | (uint16_t(*data) << 8);
+	return value;
+}

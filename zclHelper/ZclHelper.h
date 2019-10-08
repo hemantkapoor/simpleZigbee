@@ -84,7 +84,7 @@ enum ZCLCommandFramesIdEnum : uint8_t
 	DiscoverAttributesExtendedResponse
 };
 
-enum ClisterLibraryDataTypesEnum
+enum ClisterLibraryDataTypesEnum : uint8_t
 {
 	ZCL_NODATA = 0x00,
 	ZCL_DATA8 = 0x08,
@@ -158,7 +158,7 @@ struct __attribute__ ((packed)) ZclHeaderStruct
 	ZclFrameControlFieldStruct FrameControl;
 	//We will leave Manufacturer code as of now
 	uint8_t TransactionSequence;
-	uint8_t CommandIdentifier;
+	ZCLCommandFramesIdEnum CommandIdentifier;
 };
 
 class ZclHelper
@@ -166,7 +166,7 @@ class ZclHelper
 public:
 	ZclHelper();
 	virtual ~ZclHelper() = default;
-	ZclDataType getZclData(ClisterLibraryDataTypesEnum,uint8_t *data);
+	uint32_t getZclData(ClisterLibraryDataTypesEnum,uint8_t *data, ZclDataType&);
 private:
 	SimpleDebugName::SimpleDebug* m_debug;
 };

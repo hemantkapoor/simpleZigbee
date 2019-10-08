@@ -8,7 +8,7 @@
 #ifndef SRC_SIMPLEZIGBEE_ZCLHELPER_BASICCLUSTER_H_
 #define SRC_SIMPLEZIGBEE_ZCLHELPER_BASICCLUSTER_H_
 
-#include <vector>
+#include <map>
 #include <memory>
 #include "ZclHelper.h"
 
@@ -44,7 +44,7 @@ public:
 	BasicCluster() = delete;
 	BasicCluster(std::shared_ptr<Observer>, std::shared_ptr<SimpleSerialName::Comms> comms, uint16_t destAddress, uint8_t endPoint);
 	virtual ~BasicCluster();
-	std::vector<ZclDataType> getAttributes(const std::vector<uint16_t>&);
+	std::map<uint16_t, ZclDataType> getAttributes(const std::vector<uint16_t>&);
 
 private:
 	std::shared_ptr<Observer> m_observer;

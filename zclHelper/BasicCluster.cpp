@@ -4,12 +4,15 @@
  *  Created on: 4 Oct 2019
  *      Author: hemant
  */
+#include <cstring>
 #include "../../simpleSerial/comms/Comms.h"
 #include "../../simpleDebug/SimpleDebug.h"
 #include "../observer/Observer.h"
 #include "../object/BaseObject.h"
+#include "../object/mtAf/async/MtAfAsyncIncomingMessage.h"
 #include "../utility/Utility.h"
 #include "ZclHelper.h"
+#include "ZclReadAttributeResponse.h"
 #include "BasicCluster.h"
 
 namespace SimpleZigbeeName {
@@ -28,11 +31,11 @@ BasicCluster::~BasicCluster()
 {
 }
 
-std::vector<ZclDataType> BasicCluster::getAttributes(const std::vector<uint16_t>& attributes)
+std::map<uint16_t, ZclDataType> BasicCluster::getAttributes(const std::vector<uint16_t>& attributes)
 {
-	auto returnValue = std::vector<ZclDataType>() ;
+	auto returnValue = std::map<uint16_t, ZclDataType>();
 	ZclFrameControlFieldStruct frameControl{0x00};
-	ZclHeaderStruct frameHeader{frameControl,0x01, AF_DATA_REQUEST};
+	ZclHeaderStruct frameHeader{frameControl,0x01, ReadAttributes};
 
 	MtAfDataRequestCommandStruct commandData{m_destinationAddr,m_endPoint,m_endPoint,Basic_Cluster,m_transId, 0x30, 0x1E};
 	commandData.Len = sizeof(ZclHeaderStruct) + (sizeof(uint16_t) *attributes.size());
@@ -55,6 +58,10 @@ std::vector<ZclDataType> BasicCluster::getAttributes(const std::vector<uint16_t>
 
 	auto syncResponseExpected = Utility::getSyncyResponseCommand(SYNC_MT_AF_COMMAND0, AF_DATA_REQUEST);
 	m_observer->requestSyncResponse(syncResponseExpected);
+
+	//One the message is sent we are expecting two async acknowledgements.. ZDO_SRC_RTG_IND and AF_DATA_CONFIRM
+	//HK For now we will ignore these message handling...
+
 	auto asyncResponseExpected = Utility::getAsyncyResponseCommand(SYNC_MT_AF_COMMAND0, AF_DATA_REQUEST);
 	m_observer->requestSyncResponse(asyncResponseExpected);
 
@@ -81,9 +88,24 @@ std::vector<ZclDataType> BasicCluster::getAttributes(const std::vector<uint16_t>
 		return returnValue;
 	}
 
-	//HK To be continued.
+	//We got the data now lets print it
+	auto afDataObjectPtr = Utility::dynamicConvert<BaseObject,MtAfAsyncIncomingMessage>(std::move(asyncrespObject));
+	if(!afDataObjectPtr)
+	{
+		debug->log(SimpleDebugName::ERROR, std::string(__PRETTY_FUNCTION__) + " : Cannot convert to AF Incoming Data Object\r\n");
+		return returnValue;
+	}
+	auto afData = afDataObjectPtr->getData();
+	if(afData.empty())
+	{
+		debug->log(SimpleDebugName::ERROR, std::string(__PRETTY_FUNCTION__) + " : No Attributes received\r\n");
+		return returnValue;
+	}
 
-	return returnValue;
+	auto attributesObject = ZclReadAttributeResponse(afData);
+
+	return attributesObject.getAttributes();
+
 }
 
 } /* namespace SimpleZigbeeName */

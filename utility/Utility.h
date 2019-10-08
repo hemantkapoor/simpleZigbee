@@ -48,6 +48,8 @@ public:
 	static uint16_t getAsyncyResponseCommand(uint8_t cmd0, uint8_t cmd1);
 	static std::vector<uint8_t> getBigEndian(uint16_t data);
 	static std::vector<uint8_t> convertData(const std::vector<uint16_t>&);
+	static std::vector<uint16_t> convertData(const std::vector<uint8_t>&);
+	static uint16_t convertData(const uint8_t*);
 
 	template<typename baseType, typename derivedType>
 	static std::unique_ptr<derivedType> dynamicConvert(std::unique_ptr<baseType> baseObj)

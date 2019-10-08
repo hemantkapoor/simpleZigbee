@@ -54,7 +54,10 @@ const uint8_t SYNC_MT_AF_COMMAND0 = 0X24;
 enum MtAfCommandsEnum : uint8_t
 {
 	AF_REGISTER = 0X00,
-	AF_DATA_REQUEST
+	AF_DATA_REQUEST,
+	//Async Messages
+	AF_DATA_CONFIRM = 0x80,
+	AF_INCOMING_MSG = 0x81
 };
 const uint8_t SYNC_MT_ZDO_COMMAND0 = 0X25;
 enum MtZdoCommandsEnum : uint8_t
@@ -104,7 +107,8 @@ enum MtZdoCommandsEnum : uint8_t
 	ZDO_USER_DESC_RSP,
 	ZDO_USER_DESC_CONF,
 	ZDO_SERVER_DISC_RSP,
-	ZDO_END_DEVICE_ANNCE_IND = 0xC1
+	ZDO_END_DEVICE_ANNCE_IND = 0xC1,
+	ZDO_SRC_RTG_IND = 0xC4
 };
 
 const uint8_t SYNC_MT_SAPI_COMMAND0 = 0X26;
